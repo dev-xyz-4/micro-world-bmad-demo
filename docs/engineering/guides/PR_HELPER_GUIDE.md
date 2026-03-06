@@ -10,6 +10,11 @@ Purpose:
 - Ensure deterministic squash metadata (PR title/body parity on main)
 - Support governance hygiene through explicit workflow steps
 
+### Codex-App-Hinweis
+
+Bei governed Git-/PR-Flows in diesem Repo bleibt `scripts/quality/pr-helper.sh` der führende Ausführungsweg.
+Die Codex App darf Code ändern, Diffs vorbereiten und Texte vorschlagen, aber Branch-/Commit-/PR-/Merge-Schritte sollen über den Helper bzw. dessen Guardrails laufen.
+
 ---
 
 ## 2) Prerequisites
