@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.25
+v1.12.27
 
 Governance Baseline Includes:
 
@@ -154,6 +154,7 @@ Governance Baseline Includes:
 - Root `AGENTS.md` introduced as a thin Codex startup surface pointing only to durable repo-tracked entry/orientation and owner documents (`CODEX_ENTRY.md`, `ORCHESTRATION_INDEX.md`, `CODEX_WORKFLOW_POLICY.md`, and engineering owner guides) without creating a second policy, routing, or execution source
 - Root `AGENTS.md` clarified to remain startup-only and not an execution tracker; governed execution truth remains in the active workflow carrier
 - Model-A helper autonomy boundary established: Codex may execute through doctor/commit/push; PR-stage helper commands must be executed explicitly or surfaced as final operator commands
+- PR helper `pr-create` missing-required-parameter diagnostics improved to aggregate missing flags and emit explicit full-command guidance without changing helper workflow semantics
 
 
 Minor Change log is complete and enforced.
@@ -162,10 +163,8 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- Block 5 P1 pilot cycle completed: one minimal docs-only governed change was executed end-to-end to validate the thin Phase-4 flow in live repository execution.
-- Model-A repo-practice clarification is completed and reflected in repo-facing startup surfaces.
-- Block 5 bounded P2 follow-up pilot is now active with a minimal helper UX code patch in progress.
-- Next step: complete governed flow through doctor/commit/push, then execute explicit PR-stage helper commands (`pr-create`, `pr-merge`, `tag`, `sync-main`).
+- Block 5 bounded P2 follow-up pilot completed: one minimal governed code change was executed end-to-end to validate the thin Phase-4 flow under bounded implementation pressure.
+- Next step: finalize local closure of `P4-WU-008`, then decide whether the thin model is now strong enough for controlled P3 BMAD Feature entry or whether another bounded follow-up cycle is preferred.
 
 ---
 
