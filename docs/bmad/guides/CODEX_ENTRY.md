@@ -39,6 +39,12 @@ If classified as BMAD Feature:
 If classified as Minor Change:
 - Route log updates via the active mode target (see Mode-Aware Routing below and owner policy).
 
+## Current Repo Practice - Model A (Execution Boundary)
+
+Current repo practice (Model A): Codex may carry governed execution through `doctor` / `commit` / `push`.
+For `pr-create` and later helper-governed PR steps, Codex must either execute the full explicit helper command with all required arguments or present the exact final command for operator execution.
+Do not infer missing required helper flags/arguments; interpret the exact helper error first.
+
 
 ---
 

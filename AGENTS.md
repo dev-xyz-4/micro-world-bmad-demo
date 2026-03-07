@@ -21,6 +21,7 @@ This file is non-normative and points only to canonical repo-tracked sources.
 For repo-changing execution, use the existing governed repository execution path.
 Treat `scripts/quality/pr-helper.sh` as an external helper surface where available.
 Do not duplicate policy content or helper mechanics here.
+For helper-governed PR-stage actions, follow the entry/workflow surfaces and use the full explicit helper command when operator execution is required.
 
 ## Note
 

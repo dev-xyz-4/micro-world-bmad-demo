@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.24
+v1.12.25
 
 Governance Baseline Includes:
 
@@ -153,7 +153,7 @@ Governance Baseline Includes:
 - Phase-2D project-classification refactor (wording-level): non-owner guides/templates removed local taxonomy duplication and now delegate canonical project-type authority to `docs/engineering/guides/PROJECT_CLASSIFICATION.md` without changing workflow or SemVer ownership
 - Root `AGENTS.md` introduced as a thin Codex startup surface pointing only to durable repo-tracked entry/orientation and owner documents (`CODEX_ENTRY.md`, `ORCHESTRATION_INDEX.md`, `CODEX_WORKFLOW_POLICY.md`, and engineering owner guides) without creating a second policy, routing, or execution source
 - Root `AGENTS.md` clarified to remain startup-only and not an execution tracker; governed execution truth remains in the active workflow carrier
-
+- Model-A helper autonomy boundary established: Codex may execute through doctor/commit/push; PR-stage helper commands must be executed explicitly or surfaced as final operator commands
 
 
 Minor Change log is complete and enforced.
@@ -162,8 +162,8 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- Block 5 P1 pilot cycle: execute one minimal docs-only governed change end-to-end to validate thin Phase-4 flow in live repository execution.
-- Preserve authority boundaries: no taxonomy duplication, no SemVer rule restatement, no helper redesign, and no governance logic changes.
+- Block 5 P1 pilot cycle completed: one minimal docs-only governed change was executed end-to-end to validate the thin Phase-4 flow in live repository execution.
+- Next step: review the pilot finding on helper-autonomy boundaries, then open the bounded P2 follow-up pilot cycle.
 
 ---
 
