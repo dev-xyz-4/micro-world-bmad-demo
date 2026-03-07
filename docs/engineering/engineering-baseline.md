@@ -1,7 +1,7 @@
 # ENGINEERING GOVERNANCE BASELINE
 
-Generated on: 2026-02-21  
-Baseline Version: v1.12.22
+Generated on: 2026-03-07  
+Baseline Version: v1.12.23
 
 ---
 
@@ -37,6 +37,7 @@ The Phase-1 Engineering Governance Baseline includes:
 - `docs/engineering/guides/GOVERNANCE_MODEL.md`
 - `docs/engineering/guides/PR_HELPER_GUIDE.md`
 - `docs/entry/ORCHESTRATION_INDEX.md`
+- `AGENTS.md` (thin repository-root startup surface for Codex; non-normative)
 
 All above components are versioned repository artifacts.
 
@@ -75,4 +76,4 @@ Normative behavior ownership remains defined in:
 ## Version
 
 Initial baseline declaration established at v1.11.7.  
-Current synchronized baseline: v1.12.22.
+Current synchronized baseline: v1.12.23.

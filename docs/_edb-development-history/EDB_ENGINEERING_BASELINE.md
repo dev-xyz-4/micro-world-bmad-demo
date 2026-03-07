@@ -1,7 +1,7 @@
 # ENGINEERING GOVERNANCE BASELINE
 
-Generated on: 2026-02-21  
-Baseline Version: v1.12.22
+Generated on: 2026-03-07  
+Baseline Version: v1.12.23
 
 ---
 
@@ -39,6 +39,7 @@ The Phase-1 Engineering Governance Baseline includes:
 - PR_HELPER_GUIDE
 - ADR template
 - ORCHESTRATION_INDEX (canonical startup map)
+- AGENTS.md (thin repository-root startup surface for Codex; non-normative)
 
 All above components are versioned and tracked in repository history.
 
@@ -83,4 +84,4 @@ Phase 2 note:
 ## Version
 
 Initial baseline declaration established at v1.11.7.  
-Historical snapshot synchronized at v1.12.22.
+Historical snapshot synchronized at v1.12.23.
