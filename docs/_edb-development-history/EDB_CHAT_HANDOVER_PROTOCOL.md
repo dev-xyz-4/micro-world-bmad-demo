@@ -163,7 +163,9 @@ Minor Change log is complete and enforced.
 # 6. Current Focus
 
 - Block 5 P1 pilot cycle completed: one minimal docs-only governed change was executed end-to-end to validate the thin Phase-4 flow in live repository execution.
-- Next step: review the pilot finding on helper-autonomy boundaries, then open the bounded P2 follow-up pilot cycle.
+- Model-A repo-practice clarification is completed and reflected in repo-facing startup surfaces.
+- Block 5 bounded P2 follow-up pilot is now active with a minimal helper UX code patch in progress.
+- Next step: complete governed flow through doctor/commit/push, then execute explicit PR-stage helper commands (`pr-create`, `pr-merge`, `tag`, `sync-main`).
 
 ---
 

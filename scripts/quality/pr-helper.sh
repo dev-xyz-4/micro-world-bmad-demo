@@ -469,18 +469,25 @@ cmd_pr_create() {
   done
 
   [[ -n "$wf" ]] || { err "--workflow is required"; exit 1; }
-  [[ -n "$summary" ]] || {
-    err "--summary is required (human-readable text, not just slug)."
-    log "Migration: use --summary plus --type/--scope for Conventional Commit title generation."
+
+  local missing_required=()
+  [[ -n "$summary" ]] || missing_required+=("--summary")
+  [[ -n "$rationale" ]] || missing_required+=("--rationale")
+  [[ -n "$files" ]] || missing_required+=("--files")
+  [[ -n "$out_of_scope" ]] || missing_required+=("--out-of-scope")
+  [[ -n "$versioning_note" ]] || missing_required+=("--versioning")
+  [[ -n "$governance_note" ]] || missing_required+=("--governance")
+  [[ -n "$validation_note" ]] || missing_required+=("--validation")
+
+  if [[ ${#missing_required[@]} -gt 0 ]]; then
+    err "pr-create missing required argument(s): ${missing_required[*]}"
+    log "Use the full explicit helper command with all required arguments."
+    log "Required set: --workflow --type --scope --summary --rationale --files --out-of-scope --versioning --governance --validation"
+    log "Example:"
+    log "  $SCRIPT_NAME pr-create --workflow <workflow> --type <type> --scope <scope> --summary \"<human summary>\" --rationale \"<why>\" --files \"<file1,file2,...>\" --out-of-scope \"<non-goals>\" --versioning \"<semver note>\" --governance \"<governance notes>\" --validation \"<checks done / planned>\""
     print_help
     exit 1
-  }
-  [[ -n "$rationale" ]] || { err "--rationale is required"; print_help; exit 1; }
-  [[ -n "$files" ]] || { err "--files is required"; print_help; exit 1; }
-  [[ -n "$out_of_scope" ]] || { err "--out-of-scope is required"; print_help; exit 1; }
-  [[ -n "$versioning_note" ]] || { err "--versioning is required"; print_help; exit 1; }
-  [[ -n "$governance_note" ]] || { err "--governance is required"; print_help; exit 1; }
-  [[ -n "$validation_note" ]] || { err "--validation is required"; print_help; exit 1; }
+  fi
 
   require_clean_git "$allow_dirty"
   require_gh
@@ -493,7 +500,12 @@ cmd_pr_create() {
     scope="$(slugify "$slug")"
     log "Note: --slug is deprecated for pr-create; use --scope explicitly."
   fi
-  [[ -n "$scope" ]] || { err "--scope is required"; print_help; exit 1; }
+  [[ -n "$scope" ]] || {
+    err "--scope is required (or provide --slug to derive it)."
+    log "Use explicit --scope for deterministic PR title generation."
+    print_help
+    exit 1
+  }
   safe_scope="$(slugify "$scope")"
 
   if [[ -z "$type" ]]; then
