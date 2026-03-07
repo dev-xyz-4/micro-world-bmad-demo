@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.23
+v1.12.24
 
 Governance Baseline Includes:
 
@@ -152,6 +152,7 @@ Governance Baseline Includes:
 - Phase-2C release boundary refactor (minimal wording-level): `RELEASE_GUIDE.md` removed local versioning-owner assertions and now delegates SemVer authority to `docs/engineering/versioning.md` while preserving release-domain matrix/criteria structure
 - Phase-2D project-classification refactor (wording-level): non-owner guides/templates removed local taxonomy duplication and now delegate canonical project-type authority to `docs/engineering/guides/PROJECT_CLASSIFICATION.md` without changing workflow or SemVer ownership
 - Root `AGENTS.md` introduced as a thin Codex startup surface pointing only to durable repo-tracked entry/orientation and owner documents (`CODEX_ENTRY.md`, `ORCHESTRATION_INDEX.md`, `CODEX_WORKFLOW_POLICY.md`, and engineering owner guides) without creating a second policy, routing, or execution source
+- Root `AGENTS.md` clarified to remain startup-only and not an execution tracker; governed execution truth remains in the active workflow carrier
 
 
 
@@ -161,8 +162,8 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- Phase 3 PR4: UX polish and final consistency sweep across engineering guides (formatting and phrasing only).
-- Preserve authority boundaries: no taxonomy duplication, no SemVer rule restatement, and no governance logic changes.
+- Block 5 P1 pilot cycle: execute one minimal docs-only governed change end-to-end to validate thin Phase-4 flow in live repository execution.
+- Preserve authority boundaries: no taxonomy duplication, no SemVer rule restatement, no helper redesign, and no governance logic changes.
 
 ---
 

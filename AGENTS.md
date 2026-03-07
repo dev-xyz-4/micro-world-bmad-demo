@@ -25,3 +25,4 @@ Do not duplicate policy content or helper mechanics here.
 ## Note
 
 This file must remain thin and must not become a second policy, routing, or evidence source.
+Do not use this file as an execution tracker; active execution truth belongs in the governed carrier for the current workflow.
