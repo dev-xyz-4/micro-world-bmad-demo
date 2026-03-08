@@ -117,6 +117,8 @@ scripts/quality/pr-helper.sh doctor --workflow minor-change --tag vX.Y.Z
 
 `doctor` resolves mode before governance checks:
 Project Mode is the default behavior and applies to all downstream users.
+Canonical mode-aware target ownership remains in `docs/bmad/guides/CODEX_ENTRY.md`.
+The path lists below are convenience mirrors of that routing owner.
 
 - Project Mode (default):
   - Active when neither `EDB_MODE=1` nor `.planning/EDB_MODE` is present.
@@ -185,6 +187,8 @@ Notes:
 
 ### A) Minor Change Lifecycle
 
+Project Mode default example (downstream live targets):
+
 ```bash
 # 1) Create branch
 scripts/quality/pr-helper.sh branch --workflow minor-change --slug handover-baseline-sync
@@ -222,6 +226,9 @@ scripts/quality/pr-helper.sh tag --tag vX.Y.Z
 ```
 
 ### B) Feature Implementation Lifecycle
+
+Project Mode default example for feature artifact paths.
+Resolve the active mode-aware BMAD feature root via `docs/bmad/guides/CODEX_ENTRY.md`.
 
 ```bash
 # 1) Create branch

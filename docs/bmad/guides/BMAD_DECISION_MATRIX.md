@@ -39,6 +39,10 @@ docs/bmad/features/<feature-name>/
 ├─ 02-model.md (if structure exists)
 └─ 01-break.md (if scope is unclear)
 
+Path note:
+- The feature path shown above is the Project Mode default example.
+- Resolve active mode-aware feature-root targets via `docs/bmad/guides/CODEX_ENTRY.md`.
+
 ---
 
 ### Minor Change (no BMAD)
@@ -60,6 +64,8 @@ docs/bmad/notes/minor-change-log.md
 
 Binding constraints and forbidden combinations are defined in:
 - `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`
+- Mode-aware target-path resolution is owned by:
+  - `docs/bmad/guides/CODEX_ENTRY.md`
 
 ---
 

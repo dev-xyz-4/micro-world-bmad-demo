@@ -84,6 +84,10 @@ docs/
       decisions-log.md
 ```
 
+Path note:
+This structure is a downstream Project Mode default example.
+For active mode-aware feature-root targets, use `docs/bmad/guides/CODEX_ENTRY.md`.
+
 ### Meaning of the folders
 
 #### `docs/bmad/00-project/`
@@ -97,7 +101,7 @@ docs/
 
 ---
 
-#### `docs/bmad/features/<feature-name>/`
+#### `docs/bmad/features/<feature-name>/` (Project Mode default example)
 BMAD artifacts per feature or clearly scoped topic.
 
 - `01-break.md` — **decompose** the problem, no solution
@@ -192,11 +196,13 @@ Create these templates (or import them later from BMAD):
 This chapter describes integration with the VS Code plugin.
 Normative Codex rules are in `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`.
 
-**Standard instruction (copy/paste)**
+**Standard instruction (copy/paste; Project Mode default path example)**
 > Implement strictly according to `docs/bmad/features/<feature>/04-deliver.md`.  
 > Make no additional assumptions.  
 > If information is missing, follow behavior from  
 > `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`.
+>
+> Resolve active mode-aware feature-root paths via `docs/bmad/guides/CODEX_ENTRY.md`.
 
 ### Practical consequences
 - No architecture discussions in plugin chat
@@ -228,7 +234,7 @@ When a feature grows large:
 - [ ] Commit `docs/bmad/guides/BMAD_SETUP_Lean_Integration.md` (this document)
 - [ ] Create `docs/bmad/00-project/` + roughly fill `project-overview.md`
 - [ ] Create `docs/bmad/templates/` (4 templates)
-- [ ] For the next feature: create `docs/bmad/features/<name>/04-deliver.md`
+- [ ] For the next feature: create `docs/bmad/features/<name>/04-deliver.md` (Project Mode default example; resolve active mode-aware target via `docs/bmad/guides/CODEX_ENTRY.md`)
 - [ ] Apply Codex rules from `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`
 
 ---
@@ -260,7 +266,7 @@ Specific stop/clarification behavior for Codex is defined in
 `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`.
 
 For documentation:
-1. Add missing points to `docs/bmad/features/<feature>/questions.md`.
+1. Add missing points to `docs/bmad/features/<feature>/questions.md` (Project Mode default example; resolve active mode-aware target via `docs/bmad/guides/CODEX_ENTRY.md`).
 2. Record decisions in `03-analyze.md`.
 3. Update `04-deliver.md` if needed.
 

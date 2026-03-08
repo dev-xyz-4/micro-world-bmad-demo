@@ -13,7 +13,7 @@
 - 00-project/glossary.md
 
 ## Features
-- features/<feature-name>/
+- features/<feature-name>/ (Project Mode default example; resolve active mode-aware feature root via `docs/bmad/guides/CODEX_ENTRY.md`)
 
 ## Templates
 - templates/break.template.md
@@ -28,7 +28,7 @@
 
 ## How to add a new BMAD feature (short)
 
-1. Create a folder: `docs/bmad/features/<feature-name>/`
+1. Create a folder: `docs/bmad/features/<feature-name>/` (Project Mode default example; for EDB Mode, resolve the feature root via `docs/bmad/guides/CODEX_ENTRY.md`).
 2. Add `04-deliver.md` before any implementation (implementation contract).
 3. If decisions or trade-offs exist, add `03-analyze.md`.
 4. If the problem is non-trivial, add `02-model.md`.

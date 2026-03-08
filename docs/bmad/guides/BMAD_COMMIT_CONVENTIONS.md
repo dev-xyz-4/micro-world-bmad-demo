@@ -31,7 +31,7 @@ feat(user-profiles): add profile activation flow
 feat(data-export): introduce CSV export pipeline
 
 Requirements:
-- `<feature-name>` must match `docs/bmad/features/<feature-name>/`
+- `<feature-name>` must match the active mode BMAD feature root resolved via `docs/bmad/guides/CODEX_ENTRY.md` (for Project Mode, this is `docs/bmad/features/<feature-name>/`)
 - `04-deliver.md` must exist **before** or **in the same commit**
 - If architecture changed, related BMAD docs must be updated
 
@@ -61,6 +61,7 @@ minor(perf): reduce repeated list re-rendering
 
 Requirements:
 - Entry must be added to `docs/bmad/notes/minor-change-log.md`
+  (Project Mode default example; resolve active mode-aware log target via `docs/bmad/guides/CODEX_ENTRY.md`)
 - No BMAD feature docs are created
 - No new abstractions introduced
 
@@ -74,7 +75,7 @@ Mixed commits are allowed if they respect the process choice.
 
 feat(<feature-name>): implement according to deliver spec
 
-- update docs/bmad/features/<feature-name>/04-deliver.md
+- update `<feature-root>/<feature-name>/04-deliver.md` (resolve `<feature-root>` via `docs/bmad/guides/CODEX_ENTRY.md`; Project Mode default is `docs/bmad/features/`)
 - implement changes in src/...
 
 ### Minor Change — Mixed Commit
