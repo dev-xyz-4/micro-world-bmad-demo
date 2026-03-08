@@ -45,8 +45,9 @@ Namespace clarifier:
 Clarification handling:
 - If requirements are missing or ambiguous, follow:
   - docs/bmad/guides/CODEX_WORKFLOW_POLICY.md
-- Record open points in:
-  - docs/bmad/features/<feature-slug>/questions.md
+- Route mode-aware log/handover targets via:
+  - docs/bmad/guides/CODEX_ENTRY.md
+- Do not use BMAD feature `questions.md` paths for Minor Change workflow.
 
 Targets:
 - <primary-target-file>

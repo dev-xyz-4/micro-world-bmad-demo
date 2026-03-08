@@ -43,8 +43,11 @@ Before starting any task, Codex must read:
 
 For feature-specific work, Codex must additionally read:
 
-1. `docs/bmad/features/<feature-name>/01-break.md` (if present)
-2. `docs/bmad/features/<feature-name>/questions.md` (if present)
+Feature artifact path rule:
+- Resolve `<feature-root>` via `docs/bmad/guides/CODEX_ENTRY.md` mode-aware routing.
+
+1. `<feature-root>/<feature-name>/01-break.md` (if present)
+2. `<feature-root>/<feature-name>/questions.md` (if present)
 3. `docs/bmad/templates/<relevant-template>.md` (for documentation creation)
 
 ---
@@ -76,7 +79,7 @@ Codex may implement code only when all implementation gates in section 5 are sat
 
 Implementation is allowed only if all conditions are true:
 
-- `docs/bmad/features/<feature-name>/04-deliver.md` exists and is valid for the task
+- `<feature-root>/<feature-name>/04-deliver.md` exists and is valid for the task (`<feature-root>` resolved via `docs/bmad/guides/CODEX_ENTRY.md`)
 - scope, APIs, and acceptance criteria are explicit
 - blocking open questions are resolved or explicitly marked as blocking for stop behavior
 
@@ -89,12 +92,12 @@ If any gate fails, Codex must not implement.
 For tasks classified as Minor Change:
 
 - do not create BMAD feature documentation
-- update `docs/bmad/notes/minor-change-log.md`
-- every Minor Change MUST append a row to `docs/bmad/notes/minor-change-log.md`
+- resolve canonical log / handover / baseline targets via `docs/bmad/guides/CODEX_ENTRY.md` mode-aware routing
+- every Minor Change MUST append a row to the active mode minor-change log target
 - each row MUST include: Version, Date (YYYY-MM-DD), Scope, Short description, PR reference (if available)
-- if the log entry cannot be completed, stop and request clarification before proceeding
+- if the required mode-aware history entry cannot be completed, stop and request clarification before proceeding
 - keep changes local and reversible
-- use downstream live docs for workflow routing; treat `docs/_edb-development-history/` as blueprint-only history
+- do not restate or override mode-aware routing outside `docs/bmad/guides/CODEX_ENTRY.md`
 
 Terminology separation:
 - `Minor Change` refers to workflow classification.

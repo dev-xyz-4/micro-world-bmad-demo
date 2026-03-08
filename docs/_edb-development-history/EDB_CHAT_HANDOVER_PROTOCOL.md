@@ -156,6 +156,7 @@ Governance Baseline Includes:
 - Model-A helper autonomy boundary established: Codex may execute through doctor/commit/push; PR-stage helper commands must be executed explicitly or surfaced as final operator commands
 - PR helper `pr-create` missing-required-parameter diagnostics improved to aggregate missing flags and emit explicit full-command guidance without changing helper workflow semantics
 - First controlled P3 BMAD Feature slice opened (`p3-flow-contract-scaffold`) with break-stage artifacts (`01-break.md`, `questions.md`) stored under docs/_edb-development-history/features/ as part of the EDB self-development path (no governance-model or SemVer rule changes)
+- Mode-aware BMAD feature-path clarification patch (docs-only, SemVer PATCH planned): `CODEX_ENTRY.md` explicitly owns BMAD feature-root routing for Project Mode vs EDB Mode, while policy/templates delegate feature-root resolution to CODEX_ENTRY without introducing a second routing authority or template-family split
 
 
 Minor Change log is complete and enforced.
@@ -164,8 +165,8 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- Block 5 bounded P2 follow-up pilot completed: one minimal governed code change was executed end-to-end to validate the thin Phase-4 flow under bounded implementation pressure.
-- Next step: finalize local closure of `P4-WU-008`, then decide whether the thin model is now strong enough for controlled P3 BMAD Feature entry or whether another bounded follow-up cycle is preferred.
+- Minor Change docs-only clarification in progress/completion path: align mode-aware BMAD feature-root guidance across routing/policy/prompt surfaces while preserving Model-A and existing governance boundaries.
+- Next step: carry this clarification through governed PR flow, then continue bounded controlled-P3 feature planning/execution work with CODEX_ENTRY mode-aware feature-root routing.
 
 ---
 

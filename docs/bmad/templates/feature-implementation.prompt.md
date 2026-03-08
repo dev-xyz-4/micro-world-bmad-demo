@@ -11,10 +11,11 @@ Switch to Implementation Mode.
 
 This is a BMAD Feature Implementation:
 - <feature-slug> (<short-feature-intent>).
+- Resolve `<feature-root>` via mode-aware routing in `docs/bmad/guides/CODEX_ENTRY.md`.
 
 Implementation scope:
 Implement strictly according to:
-- docs/bmad/features/<feature-slug>/04-deliver.md
+- <feature-root>/<feature-slug>/04-deliver.md
 
 Do not implement behavior outside that document.
 
@@ -111,7 +112,7 @@ Clarification handling:
 - If requirements are unclear, follow:
   - docs/bmad/guides/CODEX_WORKFLOW_POLICY.md
 - Write clarification request to:
-  - docs/bmad/features/<feature-slug>/questions.md
+  - <feature-root>/<feature-slug>/questions.md
 
 Proceed step-by-step.
 Do not widen scope.

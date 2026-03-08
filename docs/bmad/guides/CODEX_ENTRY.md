@@ -34,7 +34,7 @@ After reading the documents above:
 - Use `docs/entry/ORCHESTRATION_INDEX.md` as the canonical startup map for authority boundaries and mode-aware context (non-normative helper).
 
 If classified as BMAD Feature:
-- Work in `docs/bmad/features/<feature-name>/`.
+- Resolve the BMAD feature artifact root via Mode-Aware Routing below.
 
 If classified as Minor Change:
 - Route log updates via the active mode target (see Mode-Aware Routing below and owner policy).
@@ -58,6 +58,7 @@ Project Mode is the default behavior and requires no additional configuration.
 Used by downstream projects.
 
 Use these canonical targets:
+- `docs/bmad/features/<feature-name>/`
 - `docs/bmad/notes/minor-change-log.md`
 - `docs/entry/chat-handover-protocol.md`
 - `docs/engineering/engineering-baseline.md`
@@ -66,14 +67,16 @@ Use these canonical targets:
 Activated when .planning/EDB_MODE exists locally (gitignored) or EDB_MODE=1 is set.
 
 Use these canonical targets:
+- `docs/_edb-development-history/features/<feature-name>/`
 - `docs/_edb-development-history/EDB_MINOR_CHANGE_LOG.md`
 - `docs/_edb-development-history/EDB_CHAT_HANDOVER_PROTOCOL.md`
 - `docs/_edb-development-history/EDB_ENGINEERING_BASELINE.md`
 
 If no mode indicator is present, Project Mode applies.
 
-Guides and prompts route to downstream live documents.
-`docs/_edb-development-history/` is blueprint-only self-history.
+Guides and prompts must resolve canonical targets via this file and must not restate conflicting mode-specific paths.
+In Project Mode, downstream live documents are the default targets.
+In EDB Mode, `docs/_edb-development-history/` is the blueprint self-development target surface.
 `docs/entry/ORCHESTRATION_INDEX.md` is a contextual orchestration map and does not replace policy authority.
 
 Versioning and SemVer ownership route to:
