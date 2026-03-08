@@ -159,7 +159,7 @@ Governance Baseline Includes:
 - Mode-aware BMAD feature-path clarification patch (docs-only, SemVer PATCH planned): `CODEX_ENTRY.md` explicitly owns BMAD feature-root routing for Project Mode vs EDB Mode, while policy/templates delegate feature-root resolution to CODEX_ENTRY without introducing a second routing authority or template-family split
 - `pr-helper.sh` Project Mode handover path defect fixed (docs-only/tooling SemVer PATCH planned): helper now targets canonical `docs/entry/chat-handover-protocol.md` for Project Mode governance checks, aligned with `docs/bmad/guides/CODEX_ENTRY.md` without workflow redesign
 - Reader-guidance UX clarification patch (docs-only, SemVer PATCH planned): first-read/reference docs now label `docs/bmad/features/...` examples as Project Mode defaults and delegate active mode-aware target resolution to `docs/bmad/guides/CODEX_ENTRY.md` without adding a second routing owner
-
+- First controlled P3 scaffold slice completed: `p3-flow-contract-scaffold` established a feature-local Flow-Contract starter with bounded continuity expectations (01-break / 02-model / 03-analyze / 04-deliver) under EDB Mode paths without introducing code implementation, governance redesign, helper changes, or routing-owner duplication.
 
 Minor Change log is complete and enforced.
 
@@ -167,9 +167,8 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- Minor Change helper fix completed/in governed-flow handoff: corrected `pr-helper.sh` Project Mode handover path to canonical CODEX_ENTRY target (`docs/entry/chat-handover-protocol.md`) with behavior-neutral scope.
-- Minor Change docs-only clarification completed/in governed-flow handoff: first-read/reference docs now clearly mark Project Mode path examples and defer mode-aware path selection to CODEX_ENTRY while preserving Model-A and governance boundaries.
-- Next step: carry the bounded minor patches through governed PR flow, then continue bounded controlled-P3 feature planning/execution work with CODEX_ENTRY mode-aware routing.
+- First controlled P3 scaffold slice completed and entering governed PR flow: the `p3-flow-contract-scaffold` artifacts define the minimal Flow-Contract starter pattern under EDB Mode routing.
+- Next step: open the first bounded code-implementation P3 slice building on this scaffold once the PR for the documentation slice is merged.
 
 ---
 

@@ -21,11 +21,9 @@
 
 ## 5) Inputs / Outputs
 ### Inputs
-- Feature slug and target path: `docs/bmad/features/p3-flow-contract-scaffold/`.
-- Existing controlled-P3 and Work-Unit constraints from:
-  - `.planning/MODELS/Phase4-Orchestrator/Phase4_Controlled_P3_Entry_Decision_v0.1.md`
-  - `.planning/MODELS/Phase4-Orchestrator/Phase4_Work_Unit_P4-WU-010_P3_Work-Unit Record.md`
-  - `.planning/MODELS/Phase4-Orchestrator/Phase4_Deterministic_Flow_Path_Registry_Spec_final.md`
+- Feature slug and target path: `docs/_edb-development-history/features/p3-flow-contract-scaffold/`.
+- Existing controlled-P3 and Work-Unit constraints from active continuity sources (reference-only context for this planning slice).
+- This slice must not require local `.planning` paths as repo-tracked artifact targets.
 - BMAD routing/policy/template inputs:
   - `docs/bmad/guides/CODEX_ENTRY.md`
   - `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`
@@ -33,8 +31,8 @@
 - Documentation-only constraints supplied for this task.
 
 ### Outputs
-- `docs/bmad/features/p3-flow-contract-scaffold/01-break.md` with explicit bounded scope for the first slice.
-- `docs/bmad/features/p3-flow-contract-scaffold/questions.md` with unresolved or blocking points (no silent assumptions).
+- `docs/_edb-development-history/features/p3-flow-contract-scaffold/01-break.md` with explicit bounded scope for the first slice.
+- `docs/_edb-development-history/features/p3-flow-contract-scaffold/questions.md` with unresolved or blocking points (no silent assumptions).
 - Explicit statement that implementation remains blocked until a later explicit `04-deliver.md`.
 - Explicit version decision for this planning slice: `no SemVer change`.
 
