@@ -29,7 +29,7 @@ if [[ "$MODE" == "edb" ]]; then
 else
   MODE_LABEL="Project Mode"
   MINOR_LOG_PATH="docs/bmad/notes/minor-change-log.md"
-  HANDOVER_PATH="docs/engineering/chat-handover-protocol.md"
+  HANDOVER_PATH="docs/entry/chat-handover-protocol.md"
   BASELINE_PATH="docs/engineering/engineering-baseline.md"
 fi
 
@@ -215,7 +215,7 @@ Examples:
   pr-helper.sh pr-create --workflow minor-change --type docs --scope governance \
     --summary "align handover baseline with latest patch state" \
     --rationale "prevent drift between handover and minor-change log" \
-    --files "docs/engineering/chat-handover-protocol.md,docs/bmad/notes/minor-change-log.md" \
+    --files "docs/entry/chat-handover-protocol.md,docs/bmad/notes/minor-change-log.md" \
     --out-of-scope "no governance policy changes" \
     --versioning "SemVer PATCH expected (documentation hygiene only)" \
     --governance "minor log updated; handover baseline synchronized" \

@@ -157,6 +157,7 @@ Governance Baseline Includes:
 - PR helper `pr-create` missing-required-parameter diagnostics improved to aggregate missing flags and emit explicit full-command guidance without changing helper workflow semantics
 - First controlled P3 BMAD Feature slice opened (`p3-flow-contract-scaffold`) with break-stage artifacts (`01-break.md`, `questions.md`) stored under docs/_edb-development-history/features/ as part of the EDB self-development path (no governance-model or SemVer rule changes)
 - Mode-aware BMAD feature-path clarification patch (docs-only, SemVer PATCH planned): `CODEX_ENTRY.md` explicitly owns BMAD feature-root routing for Project Mode vs EDB Mode, while policy/templates delegate feature-root resolution to CODEX_ENTRY without introducing a second routing authority or template-family split
+- `pr-helper.sh` Project Mode handover path defect fixed (docs-only/tooling SemVer PATCH planned): helper now targets canonical `docs/entry/chat-handover-protocol.md` for Project Mode governance checks, aligned with `docs/bmad/guides/CODEX_ENTRY.md` without workflow redesign
 
 
 Minor Change log is complete and enforced.
@@ -165,8 +166,9 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
+- Minor Change helper fix completed/in governed-flow handoff: corrected `pr-helper.sh` Project Mode handover path to canonical CODEX_ENTRY target (`docs/entry/chat-handover-protocol.md`) with behavior-neutral scope.
 - Minor Change docs-only clarification in progress/completion path: align mode-aware BMAD feature-root guidance across routing/policy/prompt surfaces while preserving Model-A and existing governance boundaries.
-- Next step: carry this clarification through governed PR flow, then continue bounded controlled-P3 feature planning/execution work with CODEX_ENTRY mode-aware feature-root routing.
+- Next step: carry the two bounded minor patches through governed PR flow, then continue bounded controlled-P3 feature planning/execution work with CODEX_ENTRY mode-aware routing.
 
 ---
 
