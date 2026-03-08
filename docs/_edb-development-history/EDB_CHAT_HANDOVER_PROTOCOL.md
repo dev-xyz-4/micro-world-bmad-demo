@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.27
+v1.12.28
 
 Governance Baseline Includes:
 
@@ -155,6 +155,7 @@ Governance Baseline Includes:
 - Root `AGENTS.md` clarified to remain startup-only and not an execution tracker; governed execution truth remains in the active workflow carrier
 - Model-A helper autonomy boundary established: Codex may execute through doctor/commit/push; PR-stage helper commands must be executed explicitly or surfaced as final operator commands
 - PR helper `pr-create` missing-required-parameter diagnostics improved to aggregate missing flags and emit explicit full-command guidance without changing helper workflow semantics
+- First controlled P3 BMAD Feature slice opened (`p3-flow-contract-scaffold`) with break-stage artifacts (`01-break.md`, `questions.md`) stored under docs/_edb-development-history/features/ as part of the EDB self-development path (no governance-model or SemVer rule changes)
 
 
 Minor Change log is complete and enforced.
