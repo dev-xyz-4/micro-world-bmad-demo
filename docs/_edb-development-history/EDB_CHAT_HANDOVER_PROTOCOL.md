@@ -156,11 +156,12 @@ Governance Baseline Includes:
 - Model-A helper autonomy boundary established: Codex may execute through doctor/commit/push; PR-stage helper commands must be executed explicitly or surfaced as final operator commands
 - PR helper `pr-create` missing-required-parameter diagnostics improved to aggregate missing flags and emit explicit full-command guidance without changing helper workflow semantics
 - First controlled P3 BMAD Feature slice opened (`p3-flow-contract-scaffold`) with break-stage artifacts (`01-break.md`, `questions.md`) stored under docs/_edb-development-history/features/ as part of the EDB self-development path (no governance-model or SemVer rule changes)
-- Mode-aware BMAD feature-path clarification patch (docs-only, SemVer PATCH planned): `CODEX_ENTRY.md` explicitly owns BMAD feature-root routing for Project Mode vs EDB Mode, while policy/templates delegate feature-root resolution to CODEX_ENTRY without introducing a second routing authority or template-family split
-- `pr-helper.sh` Project Mode handover path defect fixed (docs-only/tooling SemVer PATCH planned): helper now targets canonical `docs/entry/chat-handover-protocol.md` for Project Mode governance checks, aligned with `docs/bmad/guides/CODEX_ENTRY.md` without workflow redesign
-- Reader-guidance UX clarification patch (docs-only, SemVer PATCH planned): first-read/reference docs now label `docs/bmad/features/...` examples as Project Mode defaults and delegate active mode-aware target resolution to `docs/bmad/guides/CODEX_ENTRY.md` without adding a second routing owner
+- Mode-aware BMAD feature-path clarification patch (docs-only, included in v1.12.29): `CODEX_ENTRY.md` explicitly owns BMAD feature-root routing for Project Mode vs EDB Mode, while policy/templates delegate feature-root resolution to CODEX_ENTRY without introducing a second routing authority or template-family split
+- `pr-helper.sh` Project Mode handover path defect fixed (included in v1.12.29): helper now targets canonical `docs/entry/chat-handover-protocol.md` for Project Mode governance checks, aligned with `docs/bmad/guides/CODEX_ENTRY.md` without workflow redesign
+- Reader-guidance UX clarification patch (docs-only, included in v1.12.29): first-read/reference docs now label `docs/bmad/features/...` examples as Project Mode defaults and delegate active mode-aware target resolution to `docs/bmad/guides/CODEX_ENTRY.md` without adding a second routing owner
 - First controlled P3 scaffold slice completed: `p3-flow-contract-scaffold` established a feature-local Flow-Contract starter with bounded continuity expectations (01-break / 02-model / 03-analyze / 04-deliver) under EDB Mode paths without introducing code implementation, governance redesign, helper changes, or routing-owner duplication.
 - First bounded P3 code slice implemented: `flow-contract-starter.mjs` CLI introduced under `scripts/quality/`, enabling deterministic creation of feature-local BMAD starter artifacts (`01-break.md`, `questions.md`) while preserving Model-A execution boundary and CODEX_ENTRY routing ownership.
+- Tiny entry-surface clarification patch applied (docs-only, SemVer PATCH planned): role boundaries are now explicitly sharpened among `CODEX_ENTRY.md` (routing owner), `CODEX_WORKFLOW_POLICY.md` (policy owner), `ORCHESTRATION_INDEX.md` (descriptive map), and `AGENTS.md` (startup shim), with minimal wording-only drift fixes in secondary BMAD guides.
 
 Minor Change log is complete and enforced.
 
@@ -168,8 +169,9 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- First controlled P3 scaffold slice completed and entering governed PR flow: the `p3-flow-contract-scaffold` artifacts define the minimal Flow-Contract starter pattern under EDB Mode routing.
-- Next step: open the first bounded code-implementation P3 slice building on this scaffold once the PR for the documentation slice is merged.
+- First bounded P3 code slice is implemented (`flow-contract-starter.mjs`) and ready for governed continuation flow.
+- Entry-surface role boundaries are clarified on startup/routing/descriptive surfaces without introducing a second owner or structural relocation.
+- Next step: open a bounded Orchestrator Entry MVP slice on top of the clarified entry-surface roles.
 
 ---
 

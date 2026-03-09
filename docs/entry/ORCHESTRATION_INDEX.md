@@ -2,12 +2,13 @@
 
 ## Purpose
 
-This document is the canonical startup map for orchestration across the Engineering Delivery Blueprint (EDB).
+This document is a descriptive startup orientation map for orchestration across the Engineering Delivery Blueprint (EDB).
 
 It clarifies which artifacts are authoritative for routing and policy, and which artifacts are contextual state/briefing helpers.
 
 This index does not replace policy documents.
 This document is descriptive, not normative.
+This file is not a routing owner and not a policy owner.
 
 ---
 
@@ -36,7 +37,7 @@ This document is descriptive, not normative.
 
 ---
 
-## Canonical Startup Path
+## Recommended Startup Path (Descriptive)
 
 1. Read routing entry:
    - `docs/bmad/guides/CODEX_ENTRY.md`

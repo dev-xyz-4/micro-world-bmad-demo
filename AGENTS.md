@@ -1,6 +1,6 @@
 # AGENTS
 
-Purpose: thin repository-root execution-instruction surface for Codex startup.
+Purpose: thin repository-root startup shim and execution-instruction surface for Codex startup.
 This file is non-normative and points only to canonical repo-tracked sources.
 
 ## Start Here
@@ -26,4 +26,5 @@ For helper-governed PR-stage actions, follow the entry/workflow surfaces and use
 ## Note
 
 This file must remain thin and must not become a second policy, routing, or evidence source.
+It is a startup shim/pointer surface only, not a routing owner or policy owner.
 Do not use this file as an execution tracker; active execution truth belongs in the governed carrier for the current workflow.

@@ -5,6 +5,15 @@ It provides startup sequence and owner-document links.
 
 ---
 
+## Entry-Surface Role (Current)
+
+- This file is the current routing owner and mode-aware target resolver.
+- This file is not the workflow/policy owner; binding behavior remains in `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`.
+- This file is not the descriptive orchestration map; that role belongs to `docs/entry/ORCHESTRATION_INDEX.md`.
+- This file is not the root startup shim; that role belongs to `AGENTS.md`.
+
+---
+
 ## Recommended Reading Order
 
 For authoritative Codex behavior rules, refer to
@@ -31,7 +40,7 @@ After reading the documents above:
 - Classify the task via `BMAD_DECISION_MATRIX.md`.
 - Follow `CODEX_WORKFLOW_POLICY.md` for process behavior.
 - Follow `BMAD_COMMIT_CONVENTIONS.md` for commit format and review expectations.
-- Use `docs/entry/ORCHESTRATION_INDEX.md` as the canonical startup map for authority boundaries and mode-aware context (non-normative helper).
+- Use `docs/entry/ORCHESTRATION_INDEX.md` as a descriptive startup orientation map for authority boundaries and mode-aware context (non-normative helper).
 
 If classified as BMAD Feature:
 - Resolve the BMAD feature artifact root via Mode-Aware Routing below.

@@ -82,7 +82,7 @@ feat(<feature-name>): implement according to deliver spec
 
 minor(refactor): clean up shared module utils
 
-- update docs/bmad/notes/minor-change-log.md
+- update docs/bmad/notes/minor-change-log.md (Project Mode default example; resolve active mode-aware log target via `docs/bmad/guides/CODEX_ENTRY.md`)
 - refactor src/<module>/utils.ts
 
 ---

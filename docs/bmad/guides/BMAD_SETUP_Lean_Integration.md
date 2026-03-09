@@ -219,7 +219,9 @@ When a feature grows large:
 
 ---
 
-## 6) Operating rules (lightweight, but binding)
+## 6) Operating guidance (lightweight, non-normative)
+
+Binding Codex behavior and stop rules remain owned by `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`.
 
 1. **Single source of truth:** `04-deliver.md`
 2. **No assumptions without documentation:** open points → `questions.md`

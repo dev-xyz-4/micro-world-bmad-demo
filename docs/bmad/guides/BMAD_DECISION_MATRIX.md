@@ -58,6 +58,10 @@ Common indicators:
 **Required output:**
 docs/bmad/notes/minor-change-log.md
 
+Path note:
+- The minor-change log path shown above is the Project Mode default example.
+- Resolve active mode-aware log targets via `docs/bmad/guides/CODEX_ENTRY.md`.
+
 ---
 
 ## Step 3 — Policy Routing
