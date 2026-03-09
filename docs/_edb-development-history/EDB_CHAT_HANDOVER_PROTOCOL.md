@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.28
+v1.12.29
 
 Governance Baseline Includes:
 
@@ -160,6 +160,7 @@ Governance Baseline Includes:
 - `pr-helper.sh` Project Mode handover path defect fixed (docs-only/tooling SemVer PATCH planned): helper now targets canonical `docs/entry/chat-handover-protocol.md` for Project Mode governance checks, aligned with `docs/bmad/guides/CODEX_ENTRY.md` without workflow redesign
 - Reader-guidance UX clarification patch (docs-only, SemVer PATCH planned): first-read/reference docs now label `docs/bmad/features/...` examples as Project Mode defaults and delegate active mode-aware target resolution to `docs/bmad/guides/CODEX_ENTRY.md` without adding a second routing owner
 - First controlled P3 scaffold slice completed: `p3-flow-contract-scaffold` established a feature-local Flow-Contract starter with bounded continuity expectations (01-break / 02-model / 03-analyze / 04-deliver) under EDB Mode paths without introducing code implementation, governance redesign, helper changes, or routing-owner duplication.
+- First bounded P3 code slice implemented: `flow-contract-starter.mjs` CLI introduced under `scripts/quality/`, enabling deterministic creation of feature-local BMAD starter artifacts (`01-break.md`, `questions.md`) while preserving Model-A execution boundary and CODEX_ENTRY routing ownership.
 
 Minor Change log is complete and enforced.
 
