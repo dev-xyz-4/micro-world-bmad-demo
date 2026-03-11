@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.12.29
+v1.13.0
 
 Governance Baseline Includes:
 
@@ -162,6 +162,11 @@ Governance Baseline Includes:
 - First controlled P3 scaffold slice completed: `p3-flow-contract-scaffold` established a feature-local Flow-Contract starter with bounded continuity expectations (01-break / 02-model / 03-analyze / 04-deliver) under EDB Mode paths without introducing code implementation, governance redesign, helper changes, or routing-owner duplication.
 - First bounded P3 code slice implemented: `flow-contract-starter.mjs` CLI introduced under `scripts/quality/`, enabling deterministic creation of feature-local BMAD starter artifacts (`01-break.md`, `questions.md`) while preserving Model-A execution boundary and CODEX_ENTRY routing ownership.
 - Tiny entry-surface clarification patch applied (docs-only, SemVer PATCH planned): role boundaries are now explicitly sharpened among `CODEX_ENTRY.md` (routing owner), `CODEX_WORKFLOW_POLICY.md` (policy owner), `ORCHESTRATION_INDEX.md` (descriptive map), and `AGENTS.md` (startup shim), with minimal wording-only drift fixes in secondary BMAD guides.
+- Phase-4 System-Orchestrator architecture set
+- Deterministic Flow / Path Registry
+- Agent / State / Extension Architecture
+- scripts/quality/orchestrator-entry.mjs (CLI-first Orchestrator Entry MVP)
+- scripts/quality/tests/orchestrator-entry.smoke.mjs (bounded smoke validation)
 
 Minor Change log is complete and enforced.
 
@@ -169,9 +174,20 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-- First bounded P3 code slice is implemented (`flow-contract-starter.mjs`) and ready for governed continuation flow.
-- Entry-surface role boundaries are clarified on startup/routing/descriptive surfaces without introducing a second owner or structural relocation.
-- Next step: open a bounded Orchestrator Entry MVP slice on top of the clarified entry-surface roles.
+# 6. Current Focus
+
+Stabilization of the Phase-4 Orchestrator Entry MVP.
+
+The first bounded implementation slice introduced a deterministic CLI entry surface:
+
+goal → bounded clarify → primary_path → workflow_route → result
+
+Current focus areas:
+
+- stabilization of the entry output contract
+- optional JSON output hardening
+- optional CI integration for the smoke test
+- preparation for future extensions (AI clarify helper, optional UI surface)
 
 ---
 
