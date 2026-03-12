@@ -80,6 +80,7 @@ const classifyHints = (signal) => {
     "test",
   ]);
   const featureCapabilityHint = hasAnyPhrase(signal, [
+    "feature",
     "new feature",
     "feature capability",
     "new capability",
