@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * Smoke test for the Orchestrator Entry CLI JSON output contract.
+ *
+ * Validates the structured stdout contract emitted by:
+ * scripts/quality/orchestrator-entry.mjs
+ */
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -68,6 +74,45 @@ const parseJsonStdout = (result, label) => {
   }
 };
 
+const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
+const isObject = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+
+const expectNonEmptyStringField = (object, field, label) => {
+  expect(isNonEmptyString(object?.[field]), `${label}: expected non-empty string field "${field}"`);
+};
+
+const expectRouteResultShape = (payload, label, { requireNormalizationNote = false } = {}) => {
+  expect(payload.result_type === "route-result", `${label}: expected result_type=route-result`);
+  expectNonEmptyStringField(payload, "primary_path", label);
+  expectNonEmptyStringField(payload, "workflow_route", label);
+  expectNonEmptyStringField(payload, "next_step_direction", label);
+
+  if (requireNormalizationNote) {
+    expectNonEmptyStringField(payload, "normalization_note", label);
+  } else if (payload.normalization_note !== undefined) {
+    expectNonEmptyStringField(payload, "normalization_note", label);
+  }
+};
+
+const expectStopResultShape = (payload, label) => {
+  expect(payload.result_type === "stop-result", `${label}: expected result_type=stop-result`);
+  expectNonEmptyStringField(payload, "unresolved_ambiguity", label);
+  expect(typeof payload.clarify_attempt_count === "number", `${label}: expected numeric clarify_attempt_count`);
+  expectNonEmptyStringField(payload, "next_action", label);
+  expect(isObject(payload.clarify_packet), `${label}: expected clarify_packet object`);
+
+  const packet = payload.clarify_packet || {};
+  expectNonEmptyStringField(packet, "trigger", `${label} clarify_packet`);
+  expectNonEmptyStringField(packet, "missing_conflicting_input", `${label} clarify_packet`);
+  expect(
+    Array.isArray(packet.valid_options) && packet.valid_options.length >= 1 && packet.valid_options.length <= 3,
+    `${label} clarify_packet: expected valid_options array length 1..3`
+  );
+  expectNonEmptyStringField(packet, "recommendation", `${label} clarify_packet`);
+  expectNonEmptyStringField(packet, "next_action_decider", `${label} clarify_packet`);
+  expectNonEmptyStringField(packet, "blocker_pointer", `${label} clarify_packet`);
+};
+
 // 1) missing --goal
 {
   const result = runCli([]);
@@ -105,29 +150,7 @@ const parseJsonStdout = (result, label) => {
   expect(result.status !== 0, "unresolved ambiguity should exit non-zero");
   const payload = parseJsonStdout(result, "unresolved ambiguity");
   if (payload) {
-    expect(payload.result_type === "stop-result", "unresolved ambiguity should emit stop-result");
-    expect(typeof payload.clarify_attempt_count === "number", "stop-result should include clarify-attempt count");
-    const packet = payload.clarify_packet || {};
-    expect(typeof packet.trigger === "string" && packet.trigger.length > 0, "clarify_packet.trigger missing");
-    expect(
-      typeof packet.missing_conflicting_input === "string" && packet.missing_conflicting_input.length > 0,
-      "clarify_packet.missing_conflicting_input missing"
-    );
-    expect(Array.isArray(packet.valid_options) && packet.valid_options.length >= 1 && packet.valid_options.length <= 3,
-      "clarify_packet.valid_options must contain 1-3 options"
-    );
-    expect(
-      typeof packet.recommendation === "string" && packet.recommendation.length > 0,
-      "clarify_packet.recommendation missing"
-    );
-    expect(
-      typeof packet.next_action_decider === "string" && packet.next_action_decider.length > 0,
-      "clarify_packet.next_action_decider missing"
-    );
-    expect(
-      typeof packet.blocker_pointer === "string" && packet.blocker_pointer.length > 0,
-      "clarify_packet.blocker_pointer missing"
-    );
+    expectStopResultShape(payload, "unresolved ambiguity");
   }
 }
 
@@ -137,7 +160,7 @@ const parseJsonStdout = (result, label) => {
   expect(result.status === 0, "docs-only goal should exit zero");
   const payload = parseJsonStdout(result, "docs-only goal");
   if (payload) {
-    expect(payload.result_type === "route-result", "docs-only goal should emit route-result");
+    expectRouteResultShape(payload, "docs-only goal");
     expect(payload.primary_path === "P1", "docs-only goal should resolve P1");
     expect(payload.workflow_route === "Minor Change", "docs-only goal should resolve Minor Change");
   }
@@ -149,7 +172,7 @@ const parseJsonStdout = (result, label) => {
   expect(result.status === 0, "small code-change goal should exit zero");
   const payload = parseJsonStdout(result, "small code-change goal");
   if (payload) {
-    expect(payload.result_type === "route-result", "small code-change goal should emit route-result");
+    expectRouteResultShape(payload, "small code-change goal");
     expect(payload.primary_path === "P2", "small code-change goal should resolve P2");
     expect(payload.workflow_route === "Minor Change", "small code-change goal should resolve Minor Change");
   }
@@ -161,7 +184,7 @@ const parseJsonStdout = (result, label) => {
   expect(result.status === 0, "BMAD-feature goal should exit zero");
   const payload = parseJsonStdout(result, "BMAD-feature goal");
   if (payload) {
-    expect(payload.result_type === "route-result", "BMAD-feature goal should emit route-result");
+    expectRouteResultShape(payload, "BMAD-feature goal");
     expect(payload.primary_path === "P3", "BMAD-feature goal should resolve P3");
     expect(payload.workflow_route === "BMAD Feature", "BMAD-feature goal should resolve BMAD Feature");
   }
@@ -173,7 +196,7 @@ const parseJsonStdout = (result, label) => {
   expect(result.status === 0, "normalization case should exit zero");
   const payload = parseJsonStdout(result, "normalization case");
   if (payload) {
-    expect(payload.result_type === "route-result", "normalization case should emit route-result");
+    expectRouteResultShape(payload, "normalization case", { requireNormalizationNote: true });
     expect(payload.primary_path === "P3", "normalization case should normalize to P3");
     expect(payload.workflow_route === "BMAD Feature", "normalization case should remain BMAD Feature");
     expect(
@@ -193,6 +216,8 @@ const parseJsonStdout = (result, label) => {
   const firstPayload = parseJsonStdout(first, "deterministic repeat (first)");
   const secondPayload = parseJsonStdout(second, "deterministic repeat (second)");
   if (firstPayload && secondPayload) {
+    expectRouteResultShape(firstPayload, "deterministic repeat (first)");
+    expectRouteResultShape(secondPayload, "deterministic repeat (second)");
     expect(
       firstPayload.result_type === secondPayload.result_type &&
         firstPayload.primary_path === secondPayload.primary_path &&

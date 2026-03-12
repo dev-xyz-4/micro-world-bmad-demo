@@ -1,4 +1,15 @@
 #!/usr/bin/env node
+/**
+ * Orchestrator Entry CLI.
+ *
+ * Emits structured JSON results to stdout.
+ * Result classes:
+ * - route-result
+ * - stop-result
+ *
+ * Contract validation lives in:
+ * scripts/quality/tests/orchestrator-entry.smoke.mjs
+ */
 
 const args = process.argv.slice(2);
 
