@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.13.1
+v1.13.2
 
 Governance Baseline Includes:
 
@@ -168,7 +168,7 @@ Governance Baseline Includes:
 - scripts/quality/orchestrator-entry.mjs (CLI-first Orchestrator Entry MVP)
 - scripts/quality/tests/orchestrator-entry.smoke.mjs (bounded smoke validation)
 - Orchestrator Entry JSON output contract documented and smoke-test contract shape hardened (route-result / stop-result structure, clarify_packet validation, normalization-case enforcement) without CLI behavior or field-name changes
-
+- Lightweight CI smoke-test guard for Orchestrator Entry MVP (`.github/workflows/orchestrator-entry-smoke.yml`) ensuring automatic validation of the CLI JSON output contract
 
 Minor Change log is complete and enforced.
 

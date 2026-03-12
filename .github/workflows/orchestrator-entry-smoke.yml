@@ -1,0 +1,29 @@
+name: orchestrator-entry-smoke
+
+on:
+  push:
+    paths:
+      - "scripts/quality/orchestrator-entry.mjs"
+      - "scripts/quality/tests/orchestrator-entry.smoke.mjs"
+      - ".github/workflows/orchestrator-entry-smoke.yml"
+  pull_request:
+    paths:
+      - "scripts/quality/orchestrator-entry.mjs"
+      - "scripts/quality/tests/orchestrator-entry.smoke.mjs"
+      - ".github/workflows/orchestrator-entry-smoke.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run orchestrator-entry smoke test
+        run: node scripts/quality/tests/orchestrator-entry.smoke.mjs
