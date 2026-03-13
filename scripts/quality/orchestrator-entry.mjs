@@ -11,6 +11,8 @@
  * scripts/quality/tests/orchestrator-entry.smoke.mjs
  */
 
+import { buildP1MinorChangeContract } from "./p1-minor-change-contract.mjs";
+
 const args = process.argv.slice(2);
 
 const usage = [
@@ -172,7 +174,7 @@ const nextStepDirection = (primaryPath, workflowRoute) => {
   const key = `${primaryPath}|${workflowRoute}`;
   const mapping = {
     "P1|Minor Change":
-      "Minor Change docs-only next step: continue with docs-only Minor Change flow; keep governed Git-/PR path unchanged.",
+      "Minor Change docs-only next step: continue with docs-only Minor Change flow using the emitted action_contract; keep governed Git-/PR path unchanged.",
     "P1|BMAD Feature":
       "BMAD Feature docs-planning next step: continue BMAD artifact workflow at the mode-aware feature root resolved via CODEX_ENTRY.md.",
     "P2|Minor Change":
@@ -182,6 +184,37 @@ const nextStepDirection = (primaryPath, workflowRoute) => {
   };
 
   return mapping[key] || null;
+};
+
+const maybeAttachActionContract = (routeResult, { primaryPath, workflowRoute, goal }) => {
+  if (primaryPath !== "P1" || workflowRoute !== "Minor Change") {
+    return routeResult;
+  }
+
+  try {
+    return {
+      ...routeResult,
+      action_contract: buildP1MinorChangeContract({ goal }),
+    };
+  } catch (error) {
+    emitJson({
+      result_type: "stop-result",
+      unresolved_ambiguity: "Unable to load or emit the external P1 continuation contract within docs-only boundaries.",
+      clarify_attempt_count: 0,
+      clarify_packet: {
+        trigger: "p1-contract-emission-failure",
+        missing_conflicting_input: String(error?.message || "external contract selection failed"),
+        valid_options: [
+          "Resume with a valid docs-only P1 contract surface",
+        ],
+        recommendation: "Fix the external P1 contract surface or target resolution before rerunning the Entry.",
+        next_action_decider: "Operator or implementer resolves the contract-surface issue and reruns the CLI.",
+        blocker_pointer: "docs/_edb-development-history/features/p1-downstream-continuation/questions.md",
+      },
+      next_action: "Resolve the external P1 contract surface issue and rerun the command.",
+    });
+    process.exit(1);
+  }
 };
 
 const parseCli = () => {
@@ -283,7 +316,13 @@ const main = () => {
     routeResult.normalization_note = normalized.normalizationNote;
   }
 
-  emitJson(routeResult);
+  emitJson(
+    maybeAttachActionContract(routeResult, {
+      primaryPath: normalized.primaryPath,
+      workflowRoute: normalized.workflowRoute,
+      goal,
+    })
+  );
 };
 
 main();

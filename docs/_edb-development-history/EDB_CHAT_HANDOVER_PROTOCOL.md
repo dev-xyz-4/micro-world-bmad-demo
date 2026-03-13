@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.13.2
+v1.14.0
 
 Governance Baseline Includes:
 
@@ -169,6 +169,12 @@ Governance Baseline Includes:
 - scripts/quality/tests/orchestrator-entry.smoke.mjs (bounded smoke validation)
 - Orchestrator Entry JSON output contract documented and smoke-test contract shape hardened (route-result / stop-result structure, clarify_packet validation, normalization-case enforcement) without CLI behavior or field-name changes
 - Lightweight CI smoke-test guard for Orchestrator Entry MVP (`.github/workflows/orchestrator-entry-smoke.yml`) ensuring automatic validation of the CLI JSON output contract
+- First bounded `P1 / Minor Change` downstream continuation slice implemented under the accepted placement rule:
+  - `scripts/quality/orchestrator-entry.mjs` remains the Entry/routing surface
+  - `scripts/quality/p1-minor-change-contract.mjs` now defines the external `P1` contract
+  - the Entry selects/loads/emits that contract only for `route-result + P1 + Minor Change`
+  - execution remains outside the Entry and outside this bounded slice
+  - smoke coverage now validates the emitted `P1` `action_contract` shape and confirms that `P2` / `P3` outputs do not emit it
 
 Minor Change log is complete and enforced.
 
@@ -178,17 +184,20 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-Stabilization of the Phase-4 Orchestrator Entry MVP.
+Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice.
 
-The first bounded implementation slice introduced a deterministic CLI entry surface:
+The current executable entry and continuation baseline is:
 
 goal → bounded clarify → primary_path → workflow_route → result
 
 Current focus areas:
 
-- entry output contract stabilization completed
-- optional CI integration for the smoke test
-- preparation for future extensions (AI clarify helper, optional UI surface)
+- keep the Entry MVP and the new bounded `P1` contract-emission behavior stable
+- preserve the accepted placement rule:
+  - Entry selects/loads/emits contracts
+  - contract definitions live outside the Entry
+  - execution remains outside the Entry
+- decide the next bounded continuation/executor slice without reopening completed `P1` contract-emission work
 
 ---
 

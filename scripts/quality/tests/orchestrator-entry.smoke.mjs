@@ -113,6 +113,96 @@ const expectStopResultShape = (payload, label) => {
   expectNonEmptyStringField(packet, "blocker_pointer", `${label} clarify_packet`);
 };
 
+const expectP1ActionContractShape = (payload, label) => {
+  expect(isObject(payload.action_contract), `${label}: expected action_contract object`);
+
+  const contract = payload.action_contract || {};
+  expect(contract.contract_type === "p1_docs_only_minor_change", `${label}: expected P1 contract_type`);
+  expect(
+    contract.execution_mode === "human_confirmed_sequence",
+    `${label}: expected human_confirmed_sequence execution_mode`
+  );
+  expect(isObject(contract.target_resolution), `${label}: expected target_resolution object`);
+  expect(isObject(contract.required_inputs), `${label}: expected required_inputs object`);
+  expect(Array.isArray(contract.constraints), `${label}: expected constraints array`);
+  expect(Array.isArray(contract.steps), `${label}: expected steps array`);
+  expect(isObject(contract.confirm_gates), `${label}: expected confirm_gates object`);
+  expect(isObject(contract.validation), `${label}: expected validation object`);
+
+  const targetResolution = contract.target_resolution || {};
+  expectNonEmptyStringField(targetResolution, "mode", `${label} target_resolution`);
+  expectNonEmptyStringField(targetResolution, "target_kind", `${label} target_resolution`);
+  expectNonEmptyStringField(targetResolution, "target_root", `${label} target_resolution`);
+  expectNonEmptyStringField(targetResolution, "target_path_hint", `${label} target_resolution`);
+
+  const requiredInputs = contract.required_inputs || {};
+  expectNonEmptyStringField(requiredInputs, "change_goal", `${label} required_inputs`);
+  expectNonEmptyStringField(requiredInputs, "active_mode", `${label} required_inputs`);
+  expectNonEmptyStringField(requiredInputs, "target_doc_scope", `${label} required_inputs`);
+
+  expect(
+    contract.constraints.includes("no code changes"),
+    `${label}: expected docs-only no-code constraint`
+  );
+
+  const stepIds = Array.isArray(contract.steps) ? contract.steps.map((step) => step.step_id) : [];
+  expect(
+    JSON.stringify(stepIds) ===
+      JSON.stringify([
+        "resolve_target_surface",
+        "prepare_docs_prompt_artifact",
+        "save_prompt_artifact",
+        "execute_docs_change",
+        "review_result",
+      ]),
+    `${label}: expected bounded P1 step sequence`
+  );
+
+  const saveStep = Array.isArray(contract.steps)
+    ? contract.steps.find((step) => step.step_id === "save_prompt_artifact")
+    : null;
+  const executeStep = Array.isArray(contract.steps)
+    ? contract.steps.find((step) => step.step_id === "execute_docs_change")
+    : null;
+  const reviewStep = Array.isArray(contract.steps)
+    ? contract.steps.find((step) => step.step_id === "review_result")
+    : null;
+
+  expect(saveStep?.confirm_gate === "gate_save", `${label}: expected gate_save on save step`);
+  expect(saveStep?.status === "awaiting_confirmation", `${label}: expected awaiting_confirmation on save step`);
+  expect(executeStep?.confirm_gate === "gate_execute", `${label}: expected gate_execute on execute step`);
+  expect(executeStep?.status === "blocked_by_gate", `${label}: expected blocked_by_gate on execute step`);
+  expect(reviewStep?.confirm_gate === "gate_review", `${label}: expected gate_review on review step`);
+  expect(reviewStep?.required === false, `${label}: expected optional review step`);
+
+  const confirmGates = contract.confirm_gates || {};
+  expect(confirmGates.active_gate === "gate_save", `${label}: expected active gate_save`);
+  expect(
+    Array.isArray(confirmGates.entries) && confirmGates.entries.length === 1,
+    `${label}: expected one confirm_gates entry`
+  );
+  const gateEntry = Array.isArray(confirmGates.entries) ? confirmGates.entries[0] : null;
+  expect(gateEntry?.gate_id === "gate_save", `${label}: expected gate_save entry`);
+  expect(gateEntry?.state === "pending", `${label}: expected pending gate state`);
+  expect(
+    JSON.stringify(gateEntry?.allowed_responses) === JSON.stringify(["yes", "no", "cancel"]),
+    `${label}: expected yes/no/cancel allowed responses`
+  );
+
+  const validation = contract.validation || {};
+  expect(
+    Array.isArray(validation.required) &&
+      validation.required.includes("git diff --check") &&
+      validation.required.includes("docs-only boundary check") &&
+      validation.required.includes("target path sanity"),
+    `${label}: expected required validation checks`
+  );
+  expect(
+    Array.isArray(validation.optional) && validation.optional.length === 0,
+    `${label}: expected empty optional validation list`
+  );
+};
+
 // 1) missing --goal
 {
   const result = runCli([]);
@@ -163,6 +253,7 @@ const expectStopResultShape = (payload, label) => {
     expectRouteResultShape(payload, "docs-only goal");
     expect(payload.primary_path === "P1", "docs-only goal should resolve P1");
     expect(payload.workflow_route === "Minor Change", "docs-only goal should resolve Minor Change");
+    expectP1ActionContractShape(payload, "docs-only goal");
   }
 }
 
@@ -175,6 +266,7 @@ const expectStopResultShape = (payload, label) => {
     expectRouteResultShape(payload, "small code-change goal");
     expect(payload.primary_path === "P2", "small code-change goal should resolve P2");
     expect(payload.workflow_route === "Minor Change", "small code-change goal should resolve Minor Change");
+    expect(payload.action_contract === undefined, "small code-change goal should not emit action_contract");
   }
 }
 
@@ -187,6 +279,7 @@ const expectStopResultShape = (payload, label) => {
     expectRouteResultShape(payload, "BMAD-feature goal");
     expect(payload.primary_path === "P3", "BMAD-feature goal should resolve P3");
     expect(payload.workflow_route === "BMAD Feature", "BMAD-feature goal should resolve BMAD Feature");
+    expect(payload.action_contract === undefined, "BMAD-feature goal should not emit action_contract");
   }
 }
 
@@ -199,6 +292,7 @@ const expectStopResultShape = (payload, label) => {
     expectRouteResultShape(payload, "normalization case", { requireNormalizationNote: true });
     expect(payload.primary_path === "P3", "normalization case should normalize to P3");
     expect(payload.workflow_route === "BMAD Feature", "normalization case should remain BMAD Feature");
+    expect(payload.action_contract === undefined, "normalization case should not emit action_contract");
     expect(
       typeof payload.normalization_note === "string" &&
         payload.normalization_note.includes("Normalized invalid steady-state pair (P2, BMAD Feature) to (P3, BMAD Feature)"),
@@ -218,12 +312,15 @@ const expectStopResultShape = (payload, label) => {
   if (firstPayload && secondPayload) {
     expectRouteResultShape(firstPayload, "deterministic repeat (first)");
     expectRouteResultShape(secondPayload, "deterministic repeat (second)");
+    expectP1ActionContractShape(firstPayload, "deterministic repeat (first)");
+    expectP1ActionContractShape(secondPayload, "deterministic repeat (second)");
     expect(
       firstPayload.result_type === secondPayload.result_type &&
         firstPayload.primary_path === secondPayload.primary_path &&
         firstPayload.workflow_route === secondPayload.workflow_route &&
-        firstPayload.next_step_direction === secondPayload.next_step_direction,
-      "deterministic repeat should produce materially same route classification and direction"
+        firstPayload.next_step_direction === secondPayload.next_step_direction &&
+        JSON.stringify(firstPayload.action_contract) === JSON.stringify(secondPayload.action_contract),
+      "deterministic repeat should produce materially same route classification, direction, and P1 action_contract"
     );
   }
 }
