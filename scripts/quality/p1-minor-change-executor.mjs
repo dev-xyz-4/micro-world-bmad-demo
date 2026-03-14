@@ -201,6 +201,12 @@ const createAndSwitchToNewBranch = (repoRoot, targetBranchName) => {
   };
 };
 
+const isBlockedMainBranchMutationPath = (branchState, operatorDecision) =>
+  branchState.branch_class === "on_main" && operatorDecision === "request_branch_change";
+
+const isSafeNonMainAdditionalNewBranchPath = (branchState, operatorDecision) =>
+  branchState.branch_class === "on_non_main_branch" && operatorDecision === "request_branch_change";
+
 const resolveBranchDecision = (branchState, operatorDecision) => {
   if (!BRANCH_ACTIONS.has(operatorDecision)) {
     return stopWithBranchContext(
@@ -345,30 +351,29 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
   const branchState = detectBranchState(repoRoot);
   let branchDecisionOutcome;
 
-  if (isNonEmptyString(targetBranchName) && !(branchState.branch_class === "on_main" && operatorDecision === "request_branch_change")) {
-    const outOfPathMutationAction = validateTargetBranchName(repoRoot, targetBranchName) === null &&
-      branchAlreadyExists(repoRoot, targetBranchName)
-      ? "switch_to_existing_branch"
-      : "create_and_switch_to_new_branch";
+  const isSupportedTargetBranchPath = isBlockedMainBranchMutationPath(branchState, operatorDecision) ||
+    isSafeNonMainAdditionalNewBranchPath(branchState, operatorDecision);
+
+  if (isNonEmptyString(targetBranchName) && !isSupportedTargetBranchPath) {
     return stopWithBranchAndMutationContext(
       branchState,
       buildBranchDecisionResult(
         BRANCH_ACTIONS.has(operatorDecision) ? operatorDecision : "stop",
         "stopped",
-        "Use the bounded target branch name input only with request_branch_change on main."
+        "Use the bounded target branch name input only with request_branch_change on main or on a safe non-main branch."
       ),
       buildBranchMutationResult(
-        outOfPathMutationAction,
+        "create_and_switch_to_new_branch",
         "stopped",
-        "Use the bounded target branch name input only with request_branch_change on main.",
+        "Use the bounded target branch name input only with request_branch_change on main or on a safe non-main branch.",
         targetBranchName
       ),
-      "target branch name is only supported for the blocked main branch-mutation path",
-      "Use the bounded target branch name input only with request_branch_change on main."
+      "target branch name is only supported for the bounded branch-mutation paths on main or safe non-main",
+      "Use the bounded target branch name input only with request_branch_change on main or on a safe non-main branch."
     );
   }
 
-  if (branchState.branch_class === "on_main" && operatorDecision === "request_branch_change") {
+  if (isBlockedMainBranchMutationPath(branchState, operatorDecision)) {
     const awaitingBranchChangeDecision = buildBranchDecisionResult(
       "request_branch_change",
       "awaiting_branch_change",
@@ -413,6 +418,78 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
           branchAlreadyExists(repoRoot, targetBranchName)
             ? "switch_to_existing_branch"
             : "create_and_switch_to_new_branch",
+          "stopped",
+          branchMutationOutcome.next_human_action,
+          targetBranchName
+        ),
+        branchMutationOutcome.stop_reason,
+        branchMutationOutcome.next_human_action
+      );
+    }
+
+    branchDecisionOutcome = {
+      branch_state: branchMutationOutcome.branch_state,
+      branch_decision_result: buildBranchDecisionResult(
+        "request_branch_change",
+        "branch_safe_continue",
+        "Continue the bounded P1 write path on the newly created non-main branch."
+      ),
+      branch_mutation_result: branchMutationOutcome.branch_mutation_result,
+    };
+  } else if (isSafeNonMainAdditionalNewBranchPath(branchState, operatorDecision)) {
+    const awaitingBranchChoiceDecision = buildBranchDecisionResult(
+      "request_branch_change",
+      "awaiting_branch_change",
+      "Provide a new target branch name and retry the bounded additional-new-branch path."
+    );
+
+    if (!isNonEmptyString(targetBranchName)) {
+      return stopWithBranchContext(
+        branchState,
+        awaitingBranchChoiceDecision,
+        "target branch name is required for the bounded additional-new-branch path on a safe non-main branch",
+        "Provide a new target branch name and retry the bounded additional-new-branch path."
+      );
+    }
+
+    const targetBranchNameError = validateTargetBranchName(repoRoot, targetBranchName);
+    if (targetBranchNameError) {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChoiceDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
+          "stopped",
+          "Provide a valid new non-main target branch name before retrying.",
+          targetBranchName
+        ),
+        targetBranchNameError,
+        "Provide a valid new non-main target branch name before retrying."
+      );
+    }
+
+    if (branchAlreadyExists(repoRoot, targetBranchName)) {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChoiceDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
+          "stopped",
+          "Provide a new target branch name that does not already exist before retrying.",
+          targetBranchName
+        ),
+        "target branch already exists; the bounded safe non-main path only supports creating one additional new branch",
+        "Provide a new target branch name that does not already exist before retrying."
+      );
+    }
+
+    const branchMutationOutcome = createAndSwitchToNewBranch(repoRoot, targetBranchName);
+    if (branchMutationOutcome.status === "stopped") {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChoiceDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
           "stopped",
           branchMutationOutcome.next_human_action,
           targetBranchName

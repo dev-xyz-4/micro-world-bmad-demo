@@ -644,7 +644,45 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 13) executor stops when target branch resolves to main / unsafe context
+// 13) executor creates and switches to one additional new branch from a safe non-main branch
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor non-main additional-branch setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor non-main additional-branch setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/current");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "feature/additional-branch"
+      );
+      expect(
+        executorResult.status === "completed",
+        "executor should complete when creating one additional new branch from a safe non-main branch"
+      );
+      expectBranchStateShape(executorResult.branch_state, "executor non-main additional-branch branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor non-main additional-branch branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor non-main additional-branch branch_mutation_result",
+        "create_and_switch_to_new_branch"
+      );
+      expect(
+        executorResult.branch_state?.branch_name === "feature/additional-branch",
+        "executor non-main additional-branch should leave HEAD on the requested new branch"
+      );
+
+      const targetPath = path.resolve(tempRoot, executorResult.written_path || "");
+      expect(fs.existsSync(targetPath), "executor non-main additional-branch should write one docs artifact");
+    });
+  }
+}
+
+// 14) executor stops when target branch resolves to main / unsafe context
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor unsafe-target setup should resolve a valid P1 route result");
@@ -679,7 +717,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 14) executor stops when branch switching to an existing branch fails
+// 15) executor stops when branch switching to an existing branch fails
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor switch-failure setup should resolve a valid P1 route result");
@@ -733,11 +771,11 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 15) executor stops when target branch name is used outside the blocked main path
+// 16) executor stops when the safe non-main additional-new-branch target already exists
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
-  expect(result.status === 0, "executor unsupported-mutation-path setup should resolve a valid P1 route result");
-  const payload = parseJsonStdout(result, "executor unsupported-mutation-path setup");
+  expect(result.status === 0, "executor existing-target-non-main setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor existing-target-non-main setup");
   if (payload) {
     withTempRepoRoot((tempRoot) => {
       initGitRepoWithBranch(tempRoot, "feature/current");
@@ -749,7 +787,83 @@ const withTempRepoRoot = (fn) => {
       );
       expect(
         executorResult.status === "stopped",
-        "executor should stop when target branch input is used outside the blocked main path"
+        "executor should stop when the requested additional-new-branch target already exists on safe non-main"
+      );
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor existing-target-non-main");
+      expectBranchStateShape(
+        executorResult.branch_state,
+        "executor existing-target-non-main branch_state"
+      );
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor existing-target-non-main branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor existing-target-non-main branch_mutation_result",
+        "create_and_switch_to_new_branch"
+      );
+      expect(
+        executorResult.stop_reason.includes("already exists"),
+        "executor existing-target-non-main should explain that the requested new branch already exists"
+      );
+    });
+  }
+}
+
+// 17) executor stops when safe non-main branch creation fails
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor non-main create-failure setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor non-main create-failure setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/current");
+      createLocalBranch(tempRoot, "topic");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "topic/child"
+      );
+      expect(
+        executorResult.status === "stopped",
+        "executor should stop when creating one additional new branch from safe non-main fails"
+      );
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor non-main create-failure");
+      expectBranchStateShape(executorResult.branch_state, "executor non-main create-failure branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor non-main create-failure branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor non-main create-failure branch_mutation_result",
+        "create_and_switch_to_new_branch"
+      );
+      expect(
+        executorResult.stop_reason.includes("branch creation/switch failed"),
+        "executor non-main create-failure should explain the bounded branch creation failure"
+      );
+    });
+  }
+}
+
+// 18) executor stops when target branch name is used outside the bounded branch-mutation paths
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor unsupported-mutation-path setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor unsupported-mutation-path setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/current");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "continue_on_current_branch",
+        "feature/another-branch"
+      );
+      expect(
+        executorResult.status === "stopped",
+        "executor should stop when target branch input is used outside the bounded branch-mutation paths"
       );
       expectNonEmptyStringField(executorResult, "stop_reason", "executor unsupported-mutation-path");
       expectBranchStateShape(
@@ -763,17 +877,17 @@ const withTempRepoRoot = (fn) => {
       expectBranchMutationResultShape(
         executorResult.branch_mutation_result,
         "executor unsupported-mutation-path branch_mutation_result",
-        "switch_to_existing_branch"
+        "create_and_switch_to_new_branch"
       );
       expect(
-        executorResult.branch_state?.branch_class === "on_non_main_branch",
-        "executor unsupported-mutation-path should preserve current non-main branch state"
+        executorResult.stop_reason.includes("only supported"),
+        "executor unsupported-mutation-path should explain that target input is bounded to explicit mutation paths"
       );
     });
   }
 }
 
-// 16) executor stops on unknown branch state
+// 19) executor stops on unknown branch state
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor unknown-branch setup should resolve a valid P1 route result");
@@ -806,7 +920,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 17) executor stops on malformed decision shape
+// 20) executor stops on malformed decision shape
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor malformed-decision setup should resolve a valid P1 route result");
