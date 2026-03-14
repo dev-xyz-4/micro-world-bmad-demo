@@ -76,11 +76,95 @@ const buildBranchDecisionResult = (selectedAction, resultingExecutorState, nextH
   next_human_action: nextHumanAction,
 });
 
+const buildBranchMutationResult = (
+  selectedMutationAction,
+  resultingExecutorState,
+  nextHumanAction,
+  targetBranchName
+) => ({
+  selected_mutation_action: selectedMutationAction,
+  resulting_executor_state: resultingExecutorState,
+  next_human_action: nextHumanAction,
+  target_branch_name: targetBranchName,
+});
+
 const stopWithBranchContext = (branchState, branchDecisionResult, stopReason, nextHumanAction) => ({
   ...stop(stopReason, nextHumanAction),
   branch_state: branchState,
   branch_decision_result: branchDecisionResult,
 });
+
+const stopWithBranchAndMutationContext = (
+  branchState,
+  branchDecisionResult,
+  branchMutationResult,
+  stopReason,
+  nextHumanAction
+) => ({
+  ...stopWithBranchContext(branchState, branchDecisionResult, stopReason, nextHumanAction),
+  branch_mutation_result: branchMutationResult,
+});
+
+const validateTargetBranchName = (repoRoot, targetBranchName) => {
+  if (!isNonEmptyString(targetBranchName)) {
+    return "target branch name must be a non-empty string";
+  }
+
+  if (targetBranchName === "main") {
+    return "target branch name must not be main";
+  }
+
+  const result = spawnSync("git", ["check-ref-format", "--branch", targetBranchName], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  return result.status === 0 ? null : "target branch name is malformed or unsupported";
+};
+
+const branchAlreadyExists = (repoRoot, targetBranchName) => {
+  const result = spawnSync("git", ["show-ref", "--verify", "--quiet", `refs/heads/${targetBranchName}`], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  return result.status === 0;
+};
+
+const createAndSwitchToNewBranch = (repoRoot, targetBranchName) => {
+  const result = spawnSync("git", ["checkout", "-b", targetBranchName], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    return {
+      status: "stopped",
+      stop_reason: `branch creation/switch failed: ${String(result.stderr || result.stdout || "").trim() || "git checkout -b returned non-zero status"}`,
+      next_human_action: "Resolve the bounded branch-creation failure before retrying.",
+    };
+  }
+
+  const branchState = detectBranchState(repoRoot);
+  if (branchState.branch_class !== "on_non_main_branch" || branchState.branch_name !== targetBranchName) {
+    return {
+      status: "stopped",
+      stop_reason: "branch mutation did not establish the requested non-main branch safely",
+      next_human_action: "Resolve the branch state before retrying the bounded mutation path.",
+    };
+  }
+
+  return {
+    status: "completed",
+    branch_state: branchState,
+    branch_mutation_result: buildBranchMutationResult(
+      "create_and_switch_to_new_branch",
+      "branch_mutation_applied",
+      "Continue the bounded P1 write path on the newly created non-main branch.",
+      targetBranchName
+    ),
+  };
+};
 
 const resolveBranchDecision = (branchState, operatorDecision) => {
   if (!BRANCH_ACTIONS.has(operatorDecision)) {
@@ -216,16 +300,112 @@ const buildSimpleArtifactContent = (executorInput) => {
   ].join("\n");
 };
 
-export const executeP1MinorChangeWrite = (executorInput, operatorDecision) => {
+export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targetBranchName = null) => {
   const validationError = validateExecutorInput(executorInput);
   if (validationError) {
     return stop(validationError, "Provide a valid emitted P1 / Minor Change contract packet.");
   }
 
-  const branchState = detectBranchState(process.cwd());
-  const branchDecisionOutcome = resolveBranchDecision(branchState, operatorDecision);
-  if (branchDecisionOutcome.status === "stopped") {
-    return branchDecisionOutcome;
+  const repoRoot = process.cwd();
+  const branchState = detectBranchState(repoRoot);
+  let branchDecisionOutcome;
+
+  if (isNonEmptyString(targetBranchName) && !(branchState.branch_class === "on_main" && operatorDecision === "request_branch_change")) {
+    return stopWithBranchAndMutationContext(
+      branchState,
+      buildBranchDecisionResult(
+        BRANCH_ACTIONS.has(operatorDecision) ? operatorDecision : "stop",
+        "stopped",
+        "Use the bounded target branch name input only with request_branch_change on main."
+      ),
+      buildBranchMutationResult(
+        "create_and_switch_to_new_branch",
+        "stopped",
+        "Use the bounded target branch name input only with request_branch_change on main.",
+        targetBranchName
+      ),
+      "target branch name is only supported for the blocked main branch-mutation path",
+      "Use the bounded target branch name input only with request_branch_change on main."
+    );
+  }
+
+  if (branchState.branch_class === "on_main" && operatorDecision === "request_branch_change") {
+    const awaitingBranchChangeDecision = buildBranchDecisionResult(
+      "request_branch_change",
+      "awaiting_branch_change",
+      "Provide a target branch name and retry the bounded branch-mutation path."
+    );
+
+    if (!isNonEmptyString(targetBranchName)) {
+      return stopWithBranchContext(
+        branchState,
+        awaitingBranchChangeDecision,
+        "target branch name is required for the bounded create-and-switch path on main",
+        "Provide a target branch name and retry the bounded branch-mutation path."
+      );
+    }
+
+    const targetBranchNameError = validateTargetBranchName(repoRoot, targetBranchName);
+    if (targetBranchNameError) {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChangeDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
+          "stopped",
+          "Provide a valid non-main target branch name before retrying.",
+          targetBranchName
+        ),
+        targetBranchNameError,
+        "Provide a valid non-main target branch name before retrying."
+      );
+    }
+
+    if (branchAlreadyExists(repoRoot, targetBranchName)) {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChangeDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
+          "stopped",
+          "Choose a new branch name for this first bounded mutation slice before retrying.",
+          targetBranchName
+        ),
+        "target branch already exists; switch-existing behavior is out of scope for this slice",
+        "Choose a new branch name for this first bounded mutation slice before retrying."
+      );
+    }
+
+    const branchMutationOutcome = createAndSwitchToNewBranch(repoRoot, targetBranchName);
+    if (branchMutationOutcome.status === "stopped") {
+      return stopWithBranchAndMutationContext(
+        branchState,
+        awaitingBranchChangeDecision,
+        buildBranchMutationResult(
+          "create_and_switch_to_new_branch",
+          "stopped",
+          branchMutationOutcome.next_human_action,
+          targetBranchName
+        ),
+        branchMutationOutcome.stop_reason,
+        branchMutationOutcome.next_human_action
+      );
+    }
+
+    branchDecisionOutcome = {
+      branch_state: branchMutationOutcome.branch_state,
+      branch_decision_result: buildBranchDecisionResult(
+        "request_branch_change",
+        "branch_safe_continue",
+        "Continue the bounded P1 write path on the newly created non-main branch."
+      ),
+      branch_mutation_result: branchMutationOutcome.branch_mutation_result,
+    };
+  } else {
+    branchDecisionOutcome = resolveBranchDecision(branchState, operatorDecision);
+    if (branchDecisionOutcome.status === "stopped") {
+      return branchDecisionOutcome;
+    }
   }
 
   let target;
@@ -252,6 +432,9 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision) => {
     status: "completed",
     branch_state: branchDecisionOutcome.branch_state,
     branch_decision_result: branchDecisionOutcome.branch_decision_result,
+    ...(branchDecisionOutcome.branch_mutation_result
+      ? { branch_mutation_result: branchDecisionOutcome.branch_mutation_result }
+      : {}),
     written_path: target.targetPathHint,
     next_human_action: "Review the written docs artifact and continue the governed docs workflow.",
   };

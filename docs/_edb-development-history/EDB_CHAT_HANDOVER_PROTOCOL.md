@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.16.0
+v1.17.0
 
 Governance Baseline Includes:
 
@@ -193,6 +193,17 @@ Governance Baseline Includes:
     - `stop`
   - direct continuation on `main` is blocked, unknown branch state stops, and actual branch creation/switch execution is still deferred
   - smoke coverage now validates `on_main`, `on_non_main_branch`, `branch_state_unknown`, malformed decision shapes, and preserved non-`P1` stop behavior
+- First bounded branch-mutation slice implemented on the existing executor-side `P1 / Minor Change` surface:
+  - `scripts/quality/p1-minor-change-executor.mjs` now accepts one explicit target branch name after the bounded `request_branch_change` path
+  - the first supported mutation path is limited to create-and-switch from blocked `main` to a new non-`main` branch
+  - bounded mutation success now returns explicit `branch_mutation_result` context while preserving the guarded `P1` write path
+  - bounded stop behavior now covers:
+    - target branch already exists
+    - branch creation failure
+    - branch switching failure
+    - unsupported mutation-path use outside blocked `main`
+  - switch-to-existing behavior and generalized Git workflow orchestration remain deferred
+  - smoke coverage now validates successful create-and-switch from `main`, stop on existing target branch, stop on unsupported target-input usage, and preserved branch-hardening / non-`P1` behavior
 
 Minor Change log is complete and enforced.
 
@@ -202,7 +213,7 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice, the completed first bounded executor-side minimal write slice, and the completed first bounded branch-state hardening slice.
+Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice, the completed first bounded executor-side minimal write slice, the completed first bounded branch-state hardening slice, and the completed first bounded branch-mutation slice.
 
 The current executable entry and continuation baseline is:
 
@@ -213,13 +224,14 @@ Current focus areas:
 - keep the Entry MVP and the new bounded `P1` contract-emission behavior stable
 - keep the first bounded executor-side `P1` minimal write behavior stable
 - keep the completed branch-state hardening behavior stable on the existing path-specific executor surface
+- keep the completed first bounded branch-mutation behavior stable on the existing path-specific executor surface
 - preserve the accepted placement rule:
   - Entry selects/loads/emits contracts
   - contract definitions live outside the Entry
   - execution remains outside the Entry
-- decide the next bounded follow-up without reopening completed `P1` contract-emission or first branch-hardening work
+- decide the next bounded follow-up without reopening completed `P1` contract-emission, branch-state hardening, or first branch-mutation work
 - choose whether the next bounded follow-up is:
-  - actual branch creation/switch execution after the now-completed branch-state hardening slice
+  - switching to an already-existing branch after `request_branch_change`
   - or finer `P1` target resolution toward meaningful project-doc destinations
 
 ---

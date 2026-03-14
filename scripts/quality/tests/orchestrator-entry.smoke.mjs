@@ -83,6 +83,7 @@ const isAllowedBranchAction = (value) =>
   value === "continue_on_current_branch" || value === "request_branch_change" || value === "stop";
 const isAllowedExecutorState = (value) =>
   value === "branch_safe_continue" || value === "awaiting_branch_change" || value === "stopped";
+const isAllowedBranchMutationState = (value) => value === "branch_mutation_applied" || value === "stopped";
 
 const expectNonEmptyStringField = (object, field, label) => {
   expect(isNonEmptyString(object?.[field]), `${label}: expected non-empty string field "${field}"`);
@@ -239,6 +240,20 @@ const expectBranchDecisionResultShape = (object, label) => {
   expectNonEmptyStringField(object, "next_human_action", label);
 };
 
+const expectBranchMutationResultShape = (object, label) => {
+  expect(isObject(object), `${label}: expected branch_mutation_result object`);
+  expect(
+    object?.selected_mutation_action === "create_and_switch_to_new_branch",
+    `${label}: expected selected_mutation_action=create_and_switch_to_new_branch`
+  );
+  expect(
+    isAllowedBranchMutationState(object?.resulting_executor_state),
+    `${label}: expected allowed branch mutation resulting state`
+  );
+  expectNonEmptyStringField(object, "next_human_action", label);
+  expectNonEmptyStringField(object, "target_branch_name", label);
+};
+
 const initGitRepoWithBranch = (repoRoot, branchName) => {
   const initResult = spawnSync("git", ["init", "-q"], {
     cwd: repoRoot,
@@ -254,6 +269,24 @@ const initGitRepoWithBranch = (repoRoot, branchName) => {
     symbolicRefResult.status === 0,
     `git symbolic-ref should succeed for smoke temp repo (${branchName})`
   );
+
+  const commitResult = spawnSync(
+    "git",
+    ["-c", "user.name=Smoke Test", "-c", "user.email=smoke@example.com", "commit", "--allow-empty", "-m", "init", "-q"],
+    {
+      cwd: repoRoot,
+      encoding: "utf8",
+    }
+  );
+  expect(commitResult.status === 0, `git commit should succeed for smoke temp repo (${branchName})`);
+};
+
+const createLocalBranch = (repoRoot, branchName) => {
+  const branchResult = spawnSync("git", ["branch", branchName], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  expect(branchResult.status === 0, `git branch should succeed for smoke temp repo (${branchName})`);
 };
 
 const withTempRepoRoot = (fn) => {
@@ -482,7 +515,145 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 11) executor stops on unknown branch state
+// 11) executor creates and switches from main with explicit target branch name
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor mutation-success setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor mutation-success setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "main");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "feature/generated-branch"
+      );
+      expect(
+        executorResult.status === "completed",
+        "executor should complete after bounded create-and-switch from main"
+      );
+      expectBranchStateShape(executorResult.branch_state, "executor mutation-success branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor mutation-success branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor mutation-success branch_mutation_result"
+      );
+      expect(
+        executorResult.branch_state?.branch_class === "on_non_main_branch",
+        "executor mutation-success should end on a non-main branch"
+      );
+      expect(
+        executorResult.branch_state?.branch_name === "feature/generated-branch",
+        "executor mutation-success should switch to the requested target branch"
+      );
+      expect(
+        executorResult.branch_decision_result?.selected_action === "request_branch_change",
+        "executor mutation-success should preserve request_branch_change action"
+      );
+      expect(
+        executorResult.branch_decision_result?.resulting_executor_state === "branch_safe_continue",
+        "executor mutation-success should return branch_safe_continue"
+      );
+      expect(
+        executorResult.branch_mutation_result?.resulting_executor_state === "branch_mutation_applied",
+        "executor mutation-success should mark branch mutation as applied"
+      );
+
+      const targetPath = path.resolve(tempRoot, executorResult.written_path || "");
+      expect(fs.existsSync(targetPath), "executor mutation-success should write one docs artifact");
+
+      const headResult = spawnSync("git", ["symbolic-ref", "--quiet", "--short", "HEAD"], {
+        cwd: tempRoot,
+        encoding: "utf8",
+      });
+      expect(headResult.status === 0, "executor mutation-success should leave the repo on a named branch");
+      expect(
+        String(headResult.stdout || "").trim() === "feature/generated-branch",
+        "executor mutation-success should leave HEAD on the requested target branch"
+      );
+    });
+  }
+}
+
+// 12) executor stops when target branch already exists
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor branch-exists setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor branch-exists setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "main");
+      createLocalBranch(tempRoot, "feature/already-exists");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "feature/already-exists"
+      );
+      expect(executorResult.status === "stopped", "executor should stop when target branch already exists");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor branch-exists");
+      expectBranchStateShape(executorResult.branch_state, "executor branch-exists branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor branch-exists branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor branch-exists branch_mutation_result"
+      );
+      expect(
+        executorResult.stop_reason.includes("already exists"),
+        "executor branch-exists should explain that switch-existing behavior is out of scope"
+      );
+
+      const targetHint = payload.action_contract?.target_resolution?.target_path_hint;
+      const targetPath = path.resolve(tempRoot, targetHint || "");
+      expect(!fs.existsSync(targetPath), "executor branch-exists should not write any docs artifact");
+    });
+  }
+}
+
+// 13) executor stops when target branch name is used outside the blocked main path
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor unsupported-mutation-path setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor unsupported-mutation-path setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/current");
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "feature/another-branch"
+      );
+      expect(
+        executorResult.status === "stopped",
+        "executor should stop when target branch input is used outside the blocked main path"
+      );
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor unsupported-mutation-path");
+      expectBranchStateShape(
+        executorResult.branch_state,
+        "executor unsupported-mutation-path branch_state"
+      );
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor unsupported-mutation-path branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor unsupported-mutation-path branch_mutation_result"
+      );
+      expect(
+        executorResult.branch_state?.branch_class === "on_non_main_branch",
+        "executor unsupported-mutation-path should preserve current non-main branch state"
+      );
+    });
+  }
+}
+
+// 14) executor stops on unknown branch state
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor unknown-branch setup should resolve a valid P1 route result");
@@ -515,7 +686,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 12) executor stops on malformed decision shape
+// 15) executor stops on malformed decision shape
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor malformed-decision setup should resolve a valid P1 route result");
@@ -536,7 +707,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 13) executor rejects non-P1 contract packets
+// 16) executor rejects non-P1 contract packets
 {
   const result = runCli(["--goal", "apply a small code fix to the validation helper"]);
   expect(result.status === 0, "executor invalid-input setup should resolve a valid non-P1 route result");
