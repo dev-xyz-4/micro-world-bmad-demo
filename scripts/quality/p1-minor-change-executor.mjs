@@ -131,6 +131,41 @@ const branchAlreadyExists = (repoRoot, targetBranchName) => {
   return result.status === 0;
 };
 
+const switchToExistingBranch = (repoRoot, targetBranchName) => {
+  const result = spawnSync("git", ["checkout", targetBranchName], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    return {
+      status: "stopped",
+      stop_reason: `branch switch failed: ${String(result.stderr || result.stdout || "").trim() || "git checkout returned non-zero status"}`,
+      next_human_action: "Resolve the bounded branch-switch failure before retrying.",
+    };
+  }
+
+  const branchState = detectBranchState(repoRoot);
+  if (branchState.branch_class !== "on_non_main_branch" || branchState.branch_name !== targetBranchName) {
+    return {
+      status: "stopped",
+      stop_reason: "switch-existing did not establish the requested non-main branch safely",
+      next_human_action: "Resolve the branch state before retrying the bounded switch-existing path.",
+    };
+  }
+
+  return {
+    status: "completed",
+    branch_state: branchState,
+    branch_mutation_result: buildBranchMutationResult(
+      "switch_to_existing_branch",
+      "branch_mutation_applied",
+      "Continue the bounded P1 write path on the existing non-main branch.",
+      targetBranchName
+    ),
+  };
+};
+
 const createAndSwitchToNewBranch = (repoRoot, targetBranchName) => {
   const result = spawnSync("git", ["checkout", "-b", targetBranchName], {
     cwd: repoRoot,
@@ -311,6 +346,10 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
   let branchDecisionOutcome;
 
   if (isNonEmptyString(targetBranchName) && !(branchState.branch_class === "on_main" && operatorDecision === "request_branch_change")) {
+    const outOfPathMutationAction = validateTargetBranchName(repoRoot, targetBranchName) === null &&
+      branchAlreadyExists(repoRoot, targetBranchName)
+      ? "switch_to_existing_branch"
+      : "create_and_switch_to_new_branch";
     return stopWithBranchAndMutationContext(
       branchState,
       buildBranchDecisionResult(
@@ -319,7 +358,7 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
         "Use the bounded target branch name input only with request_branch_change on main."
       ),
       buildBranchMutationResult(
-        "create_and_switch_to_new_branch",
+        outOfPathMutationAction,
         "stopped",
         "Use the bounded target branch name input only with request_branch_change on main.",
         targetBranchName
@@ -351,7 +390,9 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
         branchState,
         awaitingBranchChangeDecision,
         buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
+          branchAlreadyExists(repoRoot, targetBranchName)
+            ? "switch_to_existing_branch"
+            : "create_and_switch_to_new_branch",
           "stopped",
           "Provide a valid non-main target branch name before retrying.",
           targetBranchName
@@ -361,28 +402,17 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
       );
     }
 
-    if (branchAlreadyExists(repoRoot, targetBranchName)) {
-      return stopWithBranchAndMutationContext(
-        branchState,
-        awaitingBranchChangeDecision,
-        buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
-          "stopped",
-          "Choose a new branch name for this first bounded mutation slice before retrying.",
-          targetBranchName
-        ),
-        "target branch already exists; switch-existing behavior is out of scope for this slice",
-        "Choose a new branch name for this first bounded mutation slice before retrying."
-      );
-    }
-
-    const branchMutationOutcome = createAndSwitchToNewBranch(repoRoot, targetBranchName);
+    const branchMutationOutcome = branchAlreadyExists(repoRoot, targetBranchName)
+      ? switchToExistingBranch(repoRoot, targetBranchName)
+      : createAndSwitchToNewBranch(repoRoot, targetBranchName);
     if (branchMutationOutcome.status === "stopped") {
       return stopWithBranchAndMutationContext(
         branchState,
         awaitingBranchChangeDecision,
         buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
+          branchAlreadyExists(repoRoot, targetBranchName)
+            ? "switch_to_existing_branch"
+            : "create_and_switch_to_new_branch",
           "stopped",
           branchMutationOutcome.next_human_action,
           targetBranchName
