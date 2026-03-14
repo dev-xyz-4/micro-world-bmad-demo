@@ -771,7 +771,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 16) executor stops when the safe non-main additional-new-branch target already exists
+// 16) executor switches to an already-existing safe non-main branch from a safe non-main branch
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor existing-target-non-main setup should resolve a valid P1 route result");
@@ -786,10 +786,9 @@ const withTempRepoRoot = (fn) => {
         "feature/another-branch"
       );
       expect(
-        executorResult.status === "stopped",
-        "executor should stop when the requested additional-new-branch target already exists on safe non-main"
+        executorResult.status === "completed",
+        "executor should complete when switching to an already-existing safe non-main branch from safe non-main"
       );
-      expectNonEmptyStringField(executorResult, "stop_reason", "executor existing-target-non-main");
       expectBranchStateShape(
         executorResult.branch_state,
         "executor existing-target-non-main branch_state"
@@ -801,17 +800,78 @@ const withTempRepoRoot = (fn) => {
       expectBranchMutationResultShape(
         executorResult.branch_mutation_result,
         "executor existing-target-non-main branch_mutation_result",
-        "create_and_switch_to_new_branch"
+        "switch_to_existing_branch"
       );
       expect(
-        executorResult.stop_reason.includes("already exists"),
-        "executor existing-target-non-main should explain that the requested new branch already exists"
+        executorResult.branch_state?.branch_name === "feature/another-branch",
+        "executor existing-target-non-main should leave HEAD on the requested existing branch"
+      );
+
+      const targetPath = path.resolve(tempRoot, executorResult.written_path || "");
+      expect(fs.existsSync(targetPath), "executor existing-target-non-main should write one docs artifact");
+    });
+  }
+}
+
+// 17) executor stops when switching to an existing safe non-main branch fails
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor non-main switch-failure setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor non-main switch-failure setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/current");
+      createLocalBranch(tempRoot, "feature/conflict");
+
+      const checkoutFeature = spawnSync("git", ["checkout", "feature/conflict"], {
+        cwd: tempRoot,
+        encoding: "utf8",
+      });
+      expect(checkoutFeature.status === 0, "executor non-main switch-failure setup should checkout feature/conflict");
+
+      const trackedPath = path.join(tempRoot, "docs", "conflict.md");
+      fs.mkdirSync(path.dirname(trackedPath), { recursive: true });
+      fs.writeFileSync(trackedPath, "branch version\n", "utf8");
+      gitCommitAll(tempRoot, "add conflict file on existing non-main branch");
+
+      const checkoutCurrent = spawnSync("git", ["checkout", "feature/current"], {
+        cwd: tempRoot,
+        encoding: "utf8",
+      });
+      expect(checkoutCurrent.status === 0, "executor non-main switch-failure setup should return to feature/current");
+
+      fs.mkdirSync(path.dirname(trackedPath), { recursive: true });
+      fs.writeFileSync(trackedPath, "untracked local version\n", "utf8");
+
+      const executorResult = executeP1MinorChangeWrite(
+        payload,
+        "request_branch_change",
+        "feature/conflict"
+      );
+      expect(
+        executorResult.status === "stopped",
+        "executor should stop when switching to an existing safe non-main branch fails"
+      );
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor non-main switch-failure");
+      expectBranchStateShape(executorResult.branch_state, "executor non-main switch-failure branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor non-main switch-failure branch_decision_result"
+      );
+      expectBranchMutationResultShape(
+        executorResult.branch_mutation_result,
+        "executor non-main switch-failure branch_mutation_result",
+        "switch_to_existing_branch"
+      );
+      expect(
+        executorResult.stop_reason.includes("branch switch failed"),
+        "executor non-main switch-failure should explain the checkout failure"
       );
     });
   }
 }
 
-// 17) executor stops when safe non-main branch creation fails
+// 18) executor stops when safe non-main branch creation fails
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor non-main create-failure setup should resolve a valid P1 route result");
@@ -848,7 +908,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 18) executor stops when target branch name is used outside the bounded branch-mutation paths
+// 19) executor stops when target branch name is used outside the bounded branch-mutation paths
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor unsupported-mutation-path setup should resolve a valid P1 route result");
@@ -887,7 +947,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 19) executor stops on unknown branch state
+// 20) executor stops on unknown branch state
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor unknown-branch setup should resolve a valid P1 route result");
@@ -920,7 +980,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 20) executor stops on malformed decision shape
+// 21) executor stops on malformed decision shape
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
   expect(result.status === 0, "executor malformed-decision setup should resolve a valid P1 route result");
@@ -941,7 +1001,7 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 18) executor rejects non-P1 contract packets
+// 22) executor rejects non-P1 contract packets
 {
   const result = runCli(["--goal", "apply a small code fix to the validation helper"]);
   expect(result.status === 0, "executor invalid-input setup should resolve a valid non-P1 route result");

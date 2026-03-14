@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.19.0
+v1.20.0
 
 Governance Baseline Includes:
 
@@ -233,6 +233,23 @@ Governance Baseline Includes:
   - manual redirected validation is completed for:
     - successful create-and-switch from a safe non-`main` branch to one additional new branch
     - hard stop when the requested additional-new-branch target already exists
+- First bounded safe non-`main` switch-existing slice implemented on the existing executor-side `P1 / Minor Change` surface:
+  - `scripts/quality/p1-minor-change-executor.mjs` now preserves `continue_on_current_branch` exactly as-is on a safe non-`main` branch
+  - the completed safe non-`main` additional-new-branch path remains in force exactly as-is
+  - one additive path is now available under `request_branch_change` on safe non-`main`:
+    - switch to one already-existing safe non-`main` branch using one explicit target branch name
+  - bounded stop behavior now covers:
+    - missing or invalid target branch name
+    - target branch resolved to `main`
+    - target branch missing in the repo when the bounded switch-existing path is requested
+    - branch switching failure
+    - unsafe post-switch continuity
+  - blocked-`main` create/switch behavior, blocked-`main` switch-existing behavior, and safe non-`main` additional-new-branch behavior remain preserved
+  - generalized Git workflow orchestration remains deferred
+  - smoke coverage now validates successful safe non-`main` switch-existing, stop on unsafe target branch, stop on real switch failure, and preserved safe non-`main` continuation / additional-new-branch plus blocked-`main` / branch-hardening / non-`P1` behavior
+  - manual local validation is completed for:
+    - successful switch from a safe non-`main` branch to one already-existing safe non-`main` branch
+    - hard stop when the requested existing target branch is `main`
 
 Minor Change log is complete and enforced.
 
@@ -240,9 +257,7 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-# 6. Current Focus
-
-Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice, the completed first bounded executor-side minimal write slice, the completed first bounded branch-state hardening slice, the completed first bounded branch-mutation slice, the completed first bounded switch-existing slice, and the completed first bounded non-`main` branch-choice slice.
+Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice, the completed first bounded executor-side minimal write slice, the completed first bounded branch-state hardening slice, the completed first bounded branch-mutation slice, the completed first bounded switch-existing slice, the completed first bounded non-`main` branch-choice slice, and the completed first bounded safe non-`main` switch-existing slice.
 
 The current executable entry and continuation baseline is:
 
@@ -256,13 +271,14 @@ Current focus areas:
 - keep the completed first bounded branch-mutation behavior stable on the existing path-specific executor surface
 - keep the completed first bounded switch-existing behavior stable on the existing path-specific executor surface
 - keep the completed first bounded non-`main` branch-choice behavior stable on the existing path-specific executor surface
+- keep the completed first bounded safe non-`main` switch-existing behavior stable on the existing path-specific executor surface
 - preserve the accepted placement rule:
   - Entry selects/loads/emits contracts
   - contract definitions live outside the Entry
   - execution remains outside the Entry
-- decide the next bounded follow-up without reopening completed `P1` contract-emission, branch-state hardening, first branch-mutation, switch-existing, or first safe non-`main` branch-choice work
+- decide the next bounded follow-up without reopening completed `P1` contract-emission, branch-state hardening, first branch-mutation, blocked-`main` switch-existing, first safe non-`main` branch-choice, or first safe non-`main` switch-existing work
 - choose whether the next bounded follow-up is:
-  - richer voluntary branch-choice expansion from an already-safe non-`main` branch
+  - the next bounded voluntary branch-choice expansion from an already-safe non-`main` branch
   - or finer `P1` target resolution toward meaningful project-doc destinations
 
 ---

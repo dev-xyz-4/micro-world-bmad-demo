@@ -204,7 +204,7 @@ const createAndSwitchToNewBranch = (repoRoot, targetBranchName) => {
 const isBlockedMainBranchMutationPath = (branchState, operatorDecision) =>
   branchState.branch_class === "on_main" && operatorDecision === "request_branch_change";
 
-const isSafeNonMainAdditionalNewBranchPath = (branchState, operatorDecision) =>
+const isSafeNonMainBranchChangePath = (branchState, operatorDecision) =>
   branchState.branch_class === "on_non_main_branch" && operatorDecision === "request_branch_change";
 
 const resolveBranchDecision = (branchState, operatorDecision) => {
@@ -352,7 +352,7 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
   let branchDecisionOutcome;
 
   const isSupportedTargetBranchPath = isBlockedMainBranchMutationPath(branchState, operatorDecision) ||
-    isSafeNonMainAdditionalNewBranchPath(branchState, operatorDecision);
+    isSafeNonMainBranchChangePath(branchState, operatorDecision);
 
   if (isNonEmptyString(targetBranchName) && !isSupportedTargetBranchPath) {
     return stopWithBranchAndMutationContext(
@@ -436,60 +436,54 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
       ),
       branch_mutation_result: branchMutationOutcome.branch_mutation_result,
     };
-  } else if (isSafeNonMainAdditionalNewBranchPath(branchState, operatorDecision)) {
+  } else if (isSafeNonMainBranchChangePath(branchState, operatorDecision)) {
     const awaitingBranchChoiceDecision = buildBranchDecisionResult(
       "request_branch_change",
       "awaiting_branch_change",
-      "Provide a new target branch name and retry the bounded additional-new-branch path."
+      "Provide a target branch name and retry the bounded safe non-main branch-change path."
     );
 
     if (!isNonEmptyString(targetBranchName)) {
       return stopWithBranchContext(
         branchState,
         awaitingBranchChoiceDecision,
-        "target branch name is required for the bounded additional-new-branch path on a safe non-main branch",
-        "Provide a new target branch name and retry the bounded additional-new-branch path."
+        "target branch name is required for the bounded safe non-main branch-change path",
+        "Provide a target branch name and retry the bounded safe non-main branch-change path."
       );
     }
 
     const targetBranchNameError = validateTargetBranchName(repoRoot, targetBranchName);
+    const targetBranchAlreadyExists = branchAlreadyExists(repoRoot, targetBranchName);
+    const selectedMutationAction = targetBranchAlreadyExists
+      ? "switch_to_existing_branch"
+      : "create_and_switch_to_new_branch";
+    const validTargetBranchAction = targetBranchAlreadyExists
+      ? "Provide a valid existing non-main target branch name before retrying."
+      : "Provide a valid new non-main target branch name before retrying.";
     if (targetBranchNameError) {
       return stopWithBranchAndMutationContext(
         branchState,
         awaitingBranchChoiceDecision,
         buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
+          selectedMutationAction,
           "stopped",
-          "Provide a valid new non-main target branch name before retrying.",
+          validTargetBranchAction,
           targetBranchName
         ),
         targetBranchNameError,
-        "Provide a valid new non-main target branch name before retrying."
+        validTargetBranchAction
       );
     }
 
-    if (branchAlreadyExists(repoRoot, targetBranchName)) {
-      return stopWithBranchAndMutationContext(
-        branchState,
-        awaitingBranchChoiceDecision,
-        buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
-          "stopped",
-          "Provide a new target branch name that does not already exist before retrying.",
-          targetBranchName
-        ),
-        "target branch already exists; the bounded safe non-main path only supports creating one additional new branch",
-        "Provide a new target branch name that does not already exist before retrying."
-      );
-    }
-
-    const branchMutationOutcome = createAndSwitchToNewBranch(repoRoot, targetBranchName);
+    const branchMutationOutcome = targetBranchAlreadyExists
+      ? switchToExistingBranch(repoRoot, targetBranchName)
+      : createAndSwitchToNewBranch(repoRoot, targetBranchName);
     if (branchMutationOutcome.status === "stopped") {
       return stopWithBranchAndMutationContext(
         branchState,
         awaitingBranchChoiceDecision,
         buildBranchMutationResult(
-          "create_and_switch_to_new_branch",
+          selectedMutationAction,
           "stopped",
           branchMutationOutcome.next_human_action,
           targetBranchName
@@ -504,7 +498,9 @@ export const executeP1MinorChangeWrite = (executorInput, operatorDecision, targe
       branch_decision_result: buildBranchDecisionResult(
         "request_branch_change",
         "branch_safe_continue",
-        "Continue the bounded P1 write path on the newly created non-main branch."
+        selectedMutationAction === "switch_to_existing_branch"
+          ? "Continue the bounded P1 write path on the existing non-main branch."
+          : "Continue the bounded P1 write path on the newly created non-main branch."
       ),
       branch_mutation_result: branchMutationOutcome.branch_mutation_result,
     };

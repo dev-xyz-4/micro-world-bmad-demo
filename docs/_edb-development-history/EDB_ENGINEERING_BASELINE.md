@@ -1,7 +1,7 @@
 # ENGINEERING GOVERNANCE BASELINE
 
 Generated on: 2026-03-07  
-Baseline Version: v1.12.23
+Baseline Version: v1.20.0
 
 ---
 
@@ -78,10 +78,11 @@ For binding workflow behavior and policy ownership, refer to:
 
 Phase 2 note:
 - Through v1.12.18, lifecycle boundary harmonization artifacts were synchronized in EDB history and live engineering guides.
+- Through v1.20.0, the historical baseline remains structurally intact while Phase-4 bounded orchestrator continuation slices expanded the executor-side `P1 / Minor Change` path through safe non-`main` switch-existing behavior without changing engineering-owner authority boundaries.
 
 ---
 
 ## Version
 
 Initial baseline declaration established at v1.11.7.  
-Historical snapshot synchronized at v1.12.23.
+Historical snapshot synchronized at v1.20.0.
