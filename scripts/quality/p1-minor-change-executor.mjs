@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -11,6 +12,8 @@ const stop = (stopReason, nextHumanAction) => ({
   stop_reason: stopReason,
   next_human_action: nextHumanAction,
 });
+
+const BRANCH_ACTIONS = new Set(["continue_on_current_branch", "request_branch_change", "stop"]);
 
 const validateExecutorInput = (executorInput) => {
   if (!isObject(executorInput)) {
@@ -38,6 +41,122 @@ const validateExecutorInput = (executorInput) => {
   }
 
   return null;
+};
+
+const detectBranchState = (repoRoot) => {
+  const result = spawnSync("git", ["symbolic-ref", "--quiet", "--short", "HEAD"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    return {
+      branch_name: null,
+      branch_class: "branch_state_unknown",
+    };
+  }
+
+  const branchName = String(result.stdout || "").trim();
+  if (!isNonEmptyString(branchName) || branchName === "HEAD") {
+    return {
+      branch_name: isNonEmptyString(branchName) ? branchName : null,
+      branch_class: "branch_state_unknown",
+    };
+  }
+
+  return {
+    branch_name: branchName,
+    branch_class: branchName === "main" ? "on_main" : "on_non_main_branch",
+  };
+};
+
+const buildBranchDecisionResult = (selectedAction, resultingExecutorState, nextHumanAction) => ({
+  selected_action: selectedAction,
+  resulting_executor_state: resultingExecutorState,
+  next_human_action: nextHumanAction,
+});
+
+const stopWithBranchContext = (branchState, branchDecisionResult, stopReason, nextHumanAction) => ({
+  ...stop(stopReason, nextHumanAction),
+  branch_state: branchState,
+  branch_decision_result: branchDecisionResult,
+});
+
+const resolveBranchDecision = (branchState, operatorDecision) => {
+  if (!BRANCH_ACTIONS.has(operatorDecision)) {
+    return stopWithBranchContext(
+      branchState,
+      null,
+      "branch decision must be continue_on_current_branch, request_branch_change, or stop",
+      "Choose a bounded branch action before retrying."
+    );
+  }
+
+  if (branchState.branch_class === "branch_state_unknown") {
+    return stopWithBranchContext(
+      branchState,
+      buildBranchDecisionResult(
+        "stop",
+        "stopped",
+        "Resolve the current Git branch state before retrying the repo-tracked P1 write."
+      ),
+      "git branch state could not be determined safely",
+      "Resolve the current Git branch state before retrying the repo-tracked P1 write."
+    );
+  }
+
+  if (branchState.branch_class === "on_main") {
+    if (operatorDecision === "request_branch_change") {
+      return stopWithBranchContext(
+        branchState,
+        buildBranchDecisionResult(
+          "request_branch_change",
+          "awaiting_branch_change",
+          "Create or switch to a non-main branch before retrying."
+        ),
+        "repo-tracked P1 writes cannot continue directly on main",
+        "Create or switch to a non-main branch before retrying."
+      );
+    }
+
+    return stopWithBranchContext(
+      branchState,
+      buildBranchDecisionResult("stop", "stopped", "Stop the current sequence or request branch change."),
+      "repo-tracked P1 writes cannot continue directly on main",
+      "Stop the current sequence or request branch change."
+    );
+  }
+
+  if (operatorDecision === "continue_on_current_branch") {
+    return {
+      branch_state: branchState,
+      branch_decision_result: buildBranchDecisionResult(
+        "continue_on_current_branch",
+        "branch_safe_continue",
+        "Continue the bounded P1 write path on the current non-main branch."
+      ),
+    };
+  }
+
+  if (operatorDecision === "request_branch_change") {
+    return stopWithBranchContext(
+      branchState,
+      buildBranchDecisionResult(
+        "request_branch_change",
+        "awaiting_branch_change",
+        "Create or switch to the intended branch before retrying."
+      ),
+      "branch change requested before repo-tracked P1 write continuation",
+      "Create or switch to the intended branch before retrying."
+    );
+  }
+
+  return stopWithBranchContext(
+    branchState,
+    buildBranchDecisionResult("stop", "stopped", "Stop the current sequence."),
+    "operator selected stop",
+    "Stop the current sequence."
+  );
 };
 
 const resolveWriteTarget = (actionContract) => {
@@ -97,24 +216,16 @@ const buildSimpleArtifactContent = (executorInput) => {
   ].join("\n");
 };
 
-export const executeP1MinorChangeWrite = (executorInput, branchConfirmation) => {
+export const executeP1MinorChangeWrite = (executorInput, operatorDecision) => {
   const validationError = validateExecutorInput(executorInput);
   if (validationError) {
     return stop(validationError, "Provide a valid emitted P1 / Minor Change contract packet.");
   }
 
-  if (branchConfirmation !== "yes" && branchConfirmation !== "no") {
-    return stop(
-      "branch confirmation must be yes or no",
-      "Answer the mandatory branch gate with yes or no."
-    );
-  }
-
-  if (branchConfirmation === "no") {
-    return stop(
-      "branch-confirmed execution is required before repo-tracked writes",
-      "Create or switch to a valid branch context before retrying."
-    );
+  const branchState = detectBranchState(process.cwd());
+  const branchDecisionOutcome = resolveBranchDecision(branchState, operatorDecision);
+  if (branchDecisionOutcome.status === "stopped") {
+    return branchDecisionOutcome;
   }
 
   let target;
@@ -139,6 +250,8 @@ export const executeP1MinorChangeWrite = (executorInput, branchConfirmation) => 
 
   return {
     status: "completed",
+    branch_state: branchDecisionOutcome.branch_state,
+    branch_decision_result: branchDecisionOutcome.branch_decision_result,
     written_path: target.targetPathHint,
     next_human_action: "Review the written docs artifact and continue the governed docs workflow.",
   };

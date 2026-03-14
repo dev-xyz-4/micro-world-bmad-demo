@@ -77,6 +77,12 @@ const parseJsonStdout = (result, label) => {
 
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
 const isObject = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+const isAllowedBranchClass = (value) =>
+  value === "on_main" || value === "on_non_main_branch" || value === "branch_state_unknown";
+const isAllowedBranchAction = (value) =>
+  value === "continue_on_current_branch" || value === "request_branch_change" || value === "stop";
+const isAllowedExecutorState = (value) =>
+  value === "branch_safe_continue" || value === "awaiting_branch_change" || value === "stopped";
 
 const expectNonEmptyStringField = (object, field, label) => {
   expect(isNonEmptyString(object?.[field]), `${label}: expected non-empty string field "${field}"`);
@@ -201,6 +207,52 @@ const expectP1ActionContractShape = (payload, label) => {
   expect(
     Array.isArray(validation.optional) && validation.optional.length === 0,
     `${label}: expected empty optional validation list`
+  );
+};
+
+const expectBranchStateShape = (object, label) => {
+  expect(isObject(object), `${label}: expected branch_state object`);
+  expect(
+    isAllowedBranchClass(object?.branch_class),
+    `${label}: expected allowed branch_class on_main|on_non_main_branch|branch_state_unknown`
+  );
+  if (object?.branch_class === "branch_state_unknown") {
+    expect(
+      object.branch_name === null || object.branch_name === "HEAD" || isNonEmptyString(object.branch_name),
+      `${label}: expected nullable or explicit branch_name for unknown state`
+    );
+  } else {
+    expectNonEmptyStringField(object, "branch_name", label);
+  }
+};
+
+const expectBranchDecisionResultShape = (object, label) => {
+  expect(isObject(object), `${label}: expected branch_decision_result object`);
+  expect(
+    isAllowedBranchAction(object?.selected_action),
+    `${label}: expected allowed selected_action`
+  );
+  expect(
+    isAllowedExecutorState(object?.resulting_executor_state),
+    `${label}: expected allowed resulting_executor_state`
+  );
+  expectNonEmptyStringField(object, "next_human_action", label);
+};
+
+const initGitRepoWithBranch = (repoRoot, branchName) => {
+  const initResult = spawnSync("git", ["init", "-q"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  expect(initResult.status === 0, `git init should succeed for smoke temp repo (${branchName})`);
+
+  const symbolicRefResult = spawnSync("git", ["symbolic-ref", "HEAD", `refs/heads/${branchName}`], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  expect(
+    symbolicRefResult.status === 0,
+    `git symbolic-ref should succeed for smoke temp repo (${branchName})`
   );
 };
 
@@ -343,44 +395,80 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 9) executor accepts valid emitted P1 contract and stops on branch=no
+// 9) executor detects on_main and requires branch-change intent
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
-  expect(result.status === 0, "executor branch=no setup should resolve a valid P1 route result");
-  const payload = parseJsonStdout(result, "executor branch=no setup");
+  expect(result.status === 0, "executor on_main setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor on_main setup");
   if (payload) {
-    expectP1ActionContractShape(payload, "executor branch=no setup");
+    expectP1ActionContractShape(payload, "executor on_main setup");
     withTempRepoRoot((tempRoot) => {
-      const executorResult = executeP1MinorChangeWrite(payload, "no");
-      expect(executorResult.status === "stopped", "executor should stop on branchConfirmation=no");
-      expectNonEmptyStringField(executorResult, "stop_reason", "executor branch=no");
-      expectNonEmptyStringField(executorResult, "next_human_action", "executor branch=no");
+      initGitRepoWithBranch(tempRoot, "main");
+      const executorResult = executeP1MinorChangeWrite(payload, "request_branch_change");
+      expect(executorResult.status === "stopped", "executor should stop on on_main branch state");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor on_main");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor on_main");
+      expectBranchStateShape(executorResult.branch_state, "executor on_main branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor on_main branch_decision_result"
+      );
+      expect(
+        executorResult.branch_state?.branch_class === "on_main",
+        "executor should classify main branch as on_main"
+      );
+      expect(
+        executorResult.branch_decision_result?.selected_action === "request_branch_change",
+        "executor on_main should preserve request_branch_change action"
+      );
+      expect(
+        executorResult.branch_decision_result?.resulting_executor_state === "awaiting_branch_change",
+        "executor on_main should return awaiting_branch_change"
+      );
 
       const targetHint = payload.action_contract?.target_resolution?.target_path_hint;
       const targetPath = path.resolve(tempRoot, targetHint || "");
-      expect(!fs.existsSync(targetPath), "executor branch=no should not write any docs artifact");
+      expect(!fs.existsSync(targetPath), "executor on_main should not write any docs artifact");
     });
   }
 }
 
-// 10) executor accepts valid emitted P1 contract and writes on branch=yes
+// 10) executor allows bounded continuation on non-main branch
 {
   const result = runCli(["--goal", "draft a docs-only clarification update"]);
-  expect(result.status === 0, "executor branch=yes setup should resolve a valid P1 route result");
-  const payload = parseJsonStdout(result, "executor branch=yes setup");
+  expect(result.status === 0, "executor non-main setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor non-main setup");
   if (payload) {
-    expectP1ActionContractShape(payload, "executor branch=yes setup");
+    expectP1ActionContractShape(payload, "executor non-main setup");
     withTempRepoRoot((tempRoot) => {
-      const executorResult = executeP1MinorChangeWrite(payload, "yes");
-      expect(executorResult.status === "completed", "executor should complete on branchConfirmation=yes");
+      initGitRepoWithBranch(tempRoot, "feature/test");
+      const executorResult = executeP1MinorChangeWrite(payload, "continue_on_current_branch");
+      expect(executorResult.status === "completed", "executor should complete on non-main continue");
       expect(
         executorResult.written_path === payload.action_contract?.target_resolution?.target_path_hint,
         "executor should write to the contract target_path_hint"
       );
-      expectNonEmptyStringField(executorResult, "next_human_action", "executor branch=yes");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor non-main");
+      expectBranchStateShape(executorResult.branch_state, "executor non-main branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor non-main branch_decision_result"
+      );
+      expect(
+        executorResult.branch_state?.branch_class === "on_non_main_branch",
+        "executor should classify feature branch as on_non_main_branch"
+      );
+      expect(
+        executorResult.branch_decision_result?.selected_action === "continue_on_current_branch",
+        "executor non-main should preserve continue_on_current_branch action"
+      );
+      expect(
+        executorResult.branch_decision_result?.resulting_executor_state === "branch_safe_continue",
+        "executor non-main should produce branch_safe_continue"
+      );
 
       const targetPath = path.resolve(tempRoot, executorResult.written_path || "");
-      expect(fs.existsSync(targetPath), "executor branch=yes should write one docs artifact");
+      expect(fs.existsSync(targetPath), "executor non-main should write one docs artifact");
       const writtenContent = fs.readFileSync(targetPath, "utf8");
       expect(
         writtenContent.includes("# P1 Minimal Write Artifact"),
@@ -394,7 +482,61 @@ const withTempRepoRoot = (fn) => {
   }
 }
 
-// 11) executor rejects non-P1 contract packets
+// 11) executor stops on unknown branch state
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor unknown-branch setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor unknown-branch setup");
+  if (payload) {
+    expectP1ActionContractShape(payload, "executor unknown-branch setup");
+    withTempRepoRoot((tempRoot) => {
+      const executorResult = executeP1MinorChangeWrite(payload, "continue_on_current_branch");
+      expect(executorResult.status === "stopped", "executor should stop on unknown branch state");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor unknown-branch");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor unknown-branch");
+      expectBranchStateShape(executorResult.branch_state, "executor unknown-branch branch_state");
+      expectBranchDecisionResultShape(
+        executorResult.branch_decision_result,
+        "executor unknown-branch branch_decision_result"
+      );
+      expect(
+        executorResult.branch_state?.branch_class === "branch_state_unknown",
+        "executor should classify missing git context as branch_state_unknown"
+      );
+      expect(
+        executorResult.branch_decision_result?.selected_action === "stop",
+        "executor unknown-branch should force stop"
+      );
+      expect(
+        executorResult.branch_decision_result?.resulting_executor_state === "stopped",
+        "executor unknown-branch should remain stopped"
+      );
+    });
+  }
+}
+
+// 12) executor stops on malformed decision shape
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor malformed-decision setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor malformed-decision setup");
+  if (payload) {
+    withTempRepoRoot((tempRoot) => {
+      initGitRepoWithBranch(tempRoot, "feature/test");
+      const executorResult = executeP1MinorChangeWrite(payload, "yes");
+      expect(executorResult.status === "stopped", "executor should stop on malformed decision shape");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor malformed-decision");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor malformed-decision");
+      expectBranchStateShape(executorResult.branch_state, "executor malformed-decision branch_state");
+      expect(
+        executorResult.branch_state?.branch_class === "on_non_main_branch",
+        "executor malformed-decision should still detect current non-main branch state"
+      );
+    });
+  }
+}
+
+// 13) executor rejects non-P1 contract packets
 {
   const result = runCli(["--goal", "apply a small code fix to the validation helper"]);
   expect(result.status === 0, "executor invalid-input setup should resolve a valid non-P1 route result");
