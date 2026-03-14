@@ -106,7 +106,7 @@ Releases optional for SemVer PATCH, recommended for SemVer MINOR+.
 # 5. Current Repository State
 
 Latest Tag:
-v1.14.0
+v1.15.0
 
 Governance Baseline Includes:
 
@@ -175,6 +175,12 @@ Governance Baseline Includes:
   - the Entry selects/loads/emits that contract only for `route-result + P1 + Minor Change`
   - execution remains outside the Entry and outside this bounded slice
   - smoke coverage now validates the emitted `P1` `action_contract` shape and confirms that `P2` / `P3` outputs do not emit it
+- First bounded executor-side `P1 / Minor Change` minimal write slice implemented:
+  - `scripts/quality/p1-minor-change-executor.mjs` now consumes valid emitted `P1` contract packets outside the Entry
+  - the executor enforces a mandatory branch-confirmation gate (`yes` / `no`) before any repo-tracked write
+  - the first bounded write proof uses the contract's resolved `target_path_hint` directly
+  - the executor writes one simple docs-only markdown artifact and returns only `completed` or `stopped`
+  - smoke coverage now validates executor-side `branchConfirmation = no` stop behavior, `branchConfirmation = yes` bounded write behavior, and rejection of non-`P1` packets
 
 Minor Change log is complete and enforced.
 
@@ -184,7 +190,7 @@ Minor Change log is complete and enforced.
 
 # 6. Current Focus
 
-Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice.
+Phase-4 continuation growth after the completed first bounded `P1 / Minor Change` contract-emission slice and the completed first bounded executor-side minimal write slice.
 
 The current executable entry and continuation baseline is:
 
@@ -193,11 +199,15 @@ goal → bounded clarify → primary_path → workflow_route → result
 Current focus areas:
 
 - keep the Entry MVP and the new bounded `P1` contract-emission behavior stable
+- keep the first bounded executor-side `P1` minimal write behavior stable
 - preserve the accepted placement rule:
   - Entry selects/loads/emits contracts
   - contract definitions live outside the Entry
   - execution remains outside the Entry
-- decide the next bounded continuation/executor slice without reopening completed `P1` contract-emission work
+- decide the next bounded executor hardening slice without reopening completed `P1` contract-emission work
+- choose whether the next bounded follow-up is:
+  - real Git branch-state enforcement / hard-stop on `main`
+  - or finer `P1` target resolution toward meaningful project-doc destinations
 
 ---
 

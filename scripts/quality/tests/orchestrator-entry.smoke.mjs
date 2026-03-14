@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { executeP1MinorChangeWrite } from "../p1-minor-change-executor.mjs";
 
 const repoRoot = process.cwd();
 const cliPath = path.join(repoRoot, "scripts/quality/orchestrator-entry.mjs");
@@ -203,6 +204,23 @@ const expectP1ActionContractShape = (payload, label) => {
   );
 };
 
+const withTempRepoRoot = (fn) => {
+  const originalCwd = process.cwd();
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "p1-executor-smoke-"));
+
+  try {
+    process.chdir(tempRoot);
+    return fn(tempRoot);
+  } finally {
+    process.chdir(originalCwd);
+    try {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    } catch {
+      // best-effort cleanup only
+    }
+  }
+};
+
 // 1) missing --goal
 {
   const result = runCli([]);
@@ -322,6 +340,72 @@ const expectP1ActionContractShape = (payload, label) => {
         JSON.stringify(firstPayload.action_contract) === JSON.stringify(secondPayload.action_contract),
       "deterministic repeat should produce materially same route classification, direction, and P1 action_contract"
     );
+  }
+}
+
+// 9) executor accepts valid emitted P1 contract and stops on branch=no
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor branch=no setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor branch=no setup");
+  if (payload) {
+    expectP1ActionContractShape(payload, "executor branch=no setup");
+    withTempRepoRoot((tempRoot) => {
+      const executorResult = executeP1MinorChangeWrite(payload, "no");
+      expect(executorResult.status === "stopped", "executor should stop on branchConfirmation=no");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor branch=no");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor branch=no");
+
+      const targetHint = payload.action_contract?.target_resolution?.target_path_hint;
+      const targetPath = path.resolve(tempRoot, targetHint || "");
+      expect(!fs.existsSync(targetPath), "executor branch=no should not write any docs artifact");
+    });
+  }
+}
+
+// 10) executor accepts valid emitted P1 contract and writes on branch=yes
+{
+  const result = runCli(["--goal", "draft a docs-only clarification update"]);
+  expect(result.status === 0, "executor branch=yes setup should resolve a valid P1 route result");
+  const payload = parseJsonStdout(result, "executor branch=yes setup");
+  if (payload) {
+    expectP1ActionContractShape(payload, "executor branch=yes setup");
+    withTempRepoRoot((tempRoot) => {
+      const executorResult = executeP1MinorChangeWrite(payload, "yes");
+      expect(executorResult.status === "completed", "executor should complete on branchConfirmation=yes");
+      expect(
+        executorResult.written_path === payload.action_contract?.target_resolution?.target_path_hint,
+        "executor should write to the contract target_path_hint"
+      );
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor branch=yes");
+
+      const targetPath = path.resolve(tempRoot, executorResult.written_path || "");
+      expect(fs.existsSync(targetPath), "executor branch=yes should write one docs artifact");
+      const writtenContent = fs.readFileSync(targetPath, "utf8");
+      expect(
+        writtenContent.includes("# P1 Minimal Write Artifact"),
+        "executor should write the bounded markdown artifact heading"
+      );
+      expect(
+        writtenContent.includes("draft a docs-only clarification update"),
+        "executor should include the contract goal in the written artifact"
+      );
+    });
+  }
+}
+
+// 11) executor rejects non-P1 contract packets
+{
+  const result = runCli(["--goal", "apply a small code fix to the validation helper"]);
+  expect(result.status === 0, "executor invalid-input setup should resolve a valid non-P1 route result");
+  const payload = parseJsonStdout(result, "executor invalid-input setup");
+  if (payload) {
+    withTempRepoRoot(() => {
+      const executorResult = executeP1MinorChangeWrite(payload, "yes");
+      expect(executorResult.status === "stopped", "executor should stop on non-P1 input");
+      expectNonEmptyStringField(executorResult, "stop_reason", "executor invalid-input");
+      expectNonEmptyStringField(executorResult, "next_human_action", "executor invalid-input");
+    });
   }
 }
 
