@@ -63,7 +63,7 @@ Use links instead of duplicating governance text:
 # 3. Current Repository State
 
 Latest Tag:
-v0.01.0
+v0.1.1
 
 Governance Baseline Includes:
 
