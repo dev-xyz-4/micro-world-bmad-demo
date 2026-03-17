@@ -1,4 +1,8 @@
-# Engineering Delivery Blueprint (EDB)
+# Rule-Driven Micro World - BMAD Demo
+
+This repository is now used for the Rule-Driven Micro World - BMAD Demo.
+
+EDB remains the underlying method and delivery strategy used to develop this project.
 
 The **Engineering Delivery Blueprint (EDB)** is a professional, structured development blueprint designed for disciplined, AI-assisted engineering.
 

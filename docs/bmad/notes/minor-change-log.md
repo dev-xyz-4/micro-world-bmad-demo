@@ -1,6 +1,6 @@
 # Minor Change Log (Historical)
 
-Generated on: <YYYY-MM-DD>
+Generated on: 2026-03-17
 
 ------------------------------------------------------------------------
 
@@ -23,4 +23,4 @@ Namespace reminder:
 Chronological record:
 | Version | Date | Scope | Description | PR reference |
 |---|---|---|---|---|
-| vX.Y.Z | YYYY-MM-DD | <scope> | <short description> | #<PR> |
+| unreleased | 2026-03-17 | repo docs | Reposition repo docs to the Rule-Driven Micro World demo and document the initial app setup | N/A |
