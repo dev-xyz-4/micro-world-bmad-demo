@@ -7,25 +7,27 @@ This project builds a small rule-driven micro world as a demo application.
 The current in-scope baseline is:
 - BMAD-driven planning and project documentation
 - an isolated React + Vite application in `micro-world-app/`
-- preparation for a small simulation core
+- a released simulation core baseline
 - incremental, demo-friendly extensions
 
-## Planned Core Scope
+## Current Core Scope
 
-The planned core scope includes:
+The current core scope includes:
 - entities with position and velocity
 - a frame-based update loop
-- a rule pipeline that can influence entities
-- a visually understandable simulation surface
+- a rule pipeline that influences entity velocity
+- a visually understandable simulation surface with glow-focused rendering
 
-## Out of Scope for the Current Bootstrap Stage
+## Out of Scope for the Current Release Baseline
 
-The following are not part of the current bootstrap stage:
-- finished simulation behavior
+The following are not part of the current release baseline:
+- attraction or repulsion behavior
+- connection lines
+- UI controls
 - complex interaction design
 - production deployment setup
 - advanced optimization work
-- broad architecture expansion beyond the planned demo
+- broad architecture expansion beyond the current demo
 
 ## Delivery Boundaries
 

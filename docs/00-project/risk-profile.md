@@ -4,19 +4,19 @@
 
 Current overall risk is low to moderate.
 
-The project is still in an early setup phase, so the main risks are structural drift and premature complexity rather than production instability.
+The demo now has a working released core, so the main risks are scope growth, premature generalization, and clarity loss during live extension work rather than bootstrap uncertainty.
 
 ## Primary Risks
 
 - Scope drift from demo setup into unplanned feature work
-- Mixing minor bootstrap changes with real architectural decisions
-- Overdesign before the simulation core is proven
+- Mixing small minors with new architectural commitments
+- Overdesign before the next behavior slice is truly needed
 - Performance issues once entity interaction rules become more complex
 - Visual changes that reduce clarity during live demonstration
 
 ## Mitigations
 
-- Keep bootstrap and documentation changes separate from core feature implementation
+- Keep local visual and readability minors separate from new behavior work
 - Use BMAD for new structure, behavior, and decision-heavy work
 - Prefer small, reviewable increments
 - Validate demo behavior early in the browser
@@ -24,6 +24,6 @@ The project is still in an early setup phase, so the main risks are structural d
 
 ## Near-Term Watchpoints
 
-- Keep the app scaffold clean and minimal
-- Introduce simulation folders and files only when the corresponding feature is ready
+- Keep the released core small and understandable
+- Introduce additional simulation folders and files only when the corresponding feature is ready
 - Maintain alignment between planning docs and implemented state

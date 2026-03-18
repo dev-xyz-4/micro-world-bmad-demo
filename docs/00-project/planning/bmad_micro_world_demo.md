@@ -26,19 +26,25 @@ Goal:
 ## 3. Project Structure (BMAD-compatible)
 
 ```
-/src
+micro-world-app/src/
   /core
     engine.js
     entities.js
     rules.js
-  /features
-  /minors
   App.jsx
+  App.css
 ```
+
+Status:
+- `core/` is implemented for the current release baseline
+- dedicated `features/` and `minors/` app folders remain optional and can be added later if needed
 
 ---
 
 ## 4. Core Architecture (what you should build)
+
+Status:
+- baseline implemented and released
 
 ### Engine
 - Game Loop (requestAnimationFrame)
@@ -66,6 +72,7 @@ Example conceptual model:
 - Model: Entities + Position + Velocity
 - Analyze: Update per frame
 - Deliver: Implement movement
+- Status: implemented and released in `v0.2.0`
 
 ---
 
@@ -74,20 +81,21 @@ Example conceptual model:
 - Model: Rules as functions
 - Analyze: Order + effect
 - Deliver: Rule Pipeline
+- Status: implemented and released in `v0.3.0`
 
 ---
 
 ### Minor Examples in the Core
-- Improve rendering (glow)
-- Extract parameters
-- Small refactors
+- Improve rendering (glow) - implemented
+- Extract parameters - implemented
+- Small refactors - implemented
 
 ---
 
 ## 6. Live Demo Extensions
 
 ### 🟢 Minor 1: Glow Rendering
-- Canvas Alpha + Blur
+- Implemented for the current baseline
 - Effect: immediate visual upgrade
 
 ---
@@ -95,12 +103,14 @@ Example conceptual model:
 ### 🟢 Minor 2: Connection Lines
 - Lines between nearby entities
 - Distance-based transparency
+- Status: open candidate
 
 ---
 
 ### 🟢 Minor 3: UI Controls
 - Slider for speed
 - Toggle for rules
+- Status: open candidate
 
 ---
 
@@ -126,6 +136,9 @@ Entities should influence each other
 - Avoid explosions (clamp)
 - Performance (watch out for O(n²))
 
+Status:
+- not started
+
 ---
 
 ## 7. Interactivity
@@ -142,11 +155,13 @@ Entities should influence each other
 - Setup
 - Entity System
 - Basic Movement
+- Status: completed
 
 ### Day 2
 - Rule Engine
 - Visual improvements
 - Prepare demo
+- Status: completed for the current baseline
 
 ---
 

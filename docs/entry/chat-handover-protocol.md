@@ -19,7 +19,7 @@ For authoritative routing and governance behavior, use:
 
 # 1. Repository Purpose
 
-This repository is an **<repository-identity>**.
+This repository is a Rule-Driven Micro World demo built with the BMAD workflow.
 
 It separates three structural layers:
 
@@ -73,13 +73,16 @@ Governance Baseline Includes:
 - Completed BMAD feature documentation for `rule-engine`
 
 Notes:
-- `entity-system` is implemented on its feature branch and validated locally.
-- `rule-engine` is implemented on its feature branch and validated locally.
+- `entity-system` is implemented and included in the released baseline.
+- `rule-engine` is implemented and included in the released baseline.
 - The current demo baseline now includes:
   - `10` entities
   - delta-based movement
   - simple bounds behavior
   - one explicit global swirl rule applied before movement updates
+  - glow-focused rendering with subtle hue variation
+  - extracted local simulation parameters
+  - small readability refactors in the frame loop
 - `npm run build` passes for the current app state.
 - `npm run dev -- --host 127.0.0.1` starts successfully in local verification.
 
@@ -87,9 +90,9 @@ Notes:
 
 # 4. Current Focus
 
-- review and merge the `rule-engine` feature branch
-- decide whether to add more demo-facing minors or move to release preparation
-- prepare the next bounded enhancement only after the current branch is merged
+- choose the next bounded enhancement after `v0.3.0`
+- keep demo-facing minors small and reversible
+- use BMAD for the next real behavior extension, such as attraction or repulsion
 
 ---
 

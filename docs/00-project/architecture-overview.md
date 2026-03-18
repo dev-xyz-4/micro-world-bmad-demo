@@ -7,25 +7,29 @@ The repository currently consists of:
 - governance and workflow support under `docs/engineering/` and `scripts/`
 - an isolated demo application under `micro-world-app/`
 
-At this stage, the application exists as a React + Vite scaffold.
-The simulation-specific implementation is planned but not yet built.
+The current application baseline is implemented and consists of:
+- `src/core/entities.js` for entity initialization
+- `src/core/engine.js` for movement updates and bounds handling
+- `src/core/rules.js` for explicit rule application
+- `src/App.jsx` and `src/App.css` for rendering and presentation
 
-## Intended Application Shape
+## Current Application Shape
 
-The planned application structure inside `micro-world-app/src/` is:
+The implemented structure inside `micro-world-app/src/` currently uses:
 - `core/` for simulation primitives such as engine, entities, and rules
-- `features/` for larger BMAD-driven feature slices
-- `minors/` for small local improvements
 - `App.jsx` as the app entry component
+- `App.css` for the current visual surface
+
+Additional `features/` or `minors/` folders remain optional future structure and are not required by the current release baseline.
 
 ## Architectural Intent
 
-The intended core direction is:
-- separate simulation update and rendering responsibilities
-- keep rule behavior explicit and composable
-- preserve a structure that supports safe live demo extensions
+The current core direction is:
+- keep entity creation, rule application, and movement updates separate
+- apply rules explicitly before movement updates and rendering
+- preserve a structure that supports safe live demo extensions without generalized infrastructure too early
 
 ## Current Constraint
 
-This document describes the intended near-term shape only.
-It does not imply that the core architecture is already implemented.
+The current architecture is intentionally demo-oriented.
+It is not yet a generalized simulation platform and should stay small until new bounded features require expansion.
