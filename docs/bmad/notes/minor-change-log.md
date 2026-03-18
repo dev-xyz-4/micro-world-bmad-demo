@@ -27,3 +27,4 @@ Chronological record:
 | unreleased | 2026-03-18 | docs/00-project | Activate core project documentation from empty placeholders for scope, architecture, risk, and glossary | N/A |
 | unreleased | 2026-03-18 | micro-world-app rendering | Add glow-focused entity rendering with subtle color variation for the demo baseline | N/A |
 | unreleased | 2026-03-18 | micro-world-app parameters | Extract local rendering and simulation parameters into named constants without changing behavior | N/A |
+| unreleased | 2026-03-18 | micro-world-app frame loop | Refactor frame-step logic in `App.jsx` into small helpers for readability without changing behavior | N/A |

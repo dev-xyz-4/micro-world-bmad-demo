@@ -13,6 +13,26 @@ const ENTITY_ANIMATION_STAGGER_MS = 90
 const WORLD_STAT_LABELS = ['swirl rule', 'delta timing']
 const WORLD_ARIA_LABEL = 'Moving entities in a micro world'
 
+function resolveDeltaMs(timestamp, lastFrameRef) {
+  if (lastFrameRef.current === 0) {
+    lastFrameRef.current = timestamp
+  }
+
+  const deltaMs = timestamp - lastFrameRef.current
+  lastFrameRef.current = timestamp
+
+  return deltaMs
+}
+
+function advanceEntities(currentEntities, deltaMs) {
+  return updateEntities(
+    applyRules(currentEntities, ACTIVE_RULES, deltaMs),
+    deltaMs,
+    WORLD_WIDTH,
+    WORLD_HEIGHT,
+  )
+}
+
 function App() {
   const [entities, setEntities] = useState(() =>
     createInitialEntities(ENTITY_COUNT, WORLD_WIDTH, WORLD_HEIGHT),
@@ -22,21 +42,9 @@ function App() {
 
   useEffect(() => {
     function tick(timestamp) {
-      if (lastFrameRef.current === 0) {
-        lastFrameRef.current = timestamp
-      }
+      const deltaMs = resolveDeltaMs(timestamp, lastFrameRef)
 
-      const deltaMs = timestamp - lastFrameRef.current
-      lastFrameRef.current = timestamp
-
-      setEntities((currentEntities) =>
-        updateEntities(
-          applyRules(currentEntities, ACTIVE_RULES, deltaMs),
-          deltaMs,
-          WORLD_WIDTH,
-          WORLD_HEIGHT,
-        ),
-      )
+      setEntities((currentEntities) => advanceEntities(currentEntities, deltaMs))
 
       frameRef.current = window.requestAnimationFrame(tick)
     }
