@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createInitialEntities } from './core/entities'
 import { updateEntities } from './core/engine'
+import { applyRules, applySwirl } from './core/rules'
 import './App.css'
 
 const ENTITY_COUNT = 10
 const WORLD_WIDTH = 720
 const WORLD_HEIGHT = 420
+const ACTIVE_RULES = [applySwirl]
 
 function App() {
   const [entities, setEntities] = useState(() =>
@@ -24,7 +26,12 @@ function App() {
       lastFrameRef.current = timestamp
 
       setEntities((currentEntities) =>
-        updateEntities(currentEntities, deltaMs, WORLD_WIDTH, WORLD_HEIGHT),
+        updateEntities(
+          applyRules(currentEntities, ACTIVE_RULES, deltaMs),
+          deltaMs,
+          WORLD_WIDTH,
+          WORLD_HEIGHT,
+        ),
       )
 
       frameRef.current = window.requestAnimationFrame(tick)
@@ -41,19 +48,19 @@ function App() {
   return (
     <main className="app-shell">
       <section className="app-copy">
-        <p className="eyebrow">Entity System</p>
+        <p className="eyebrow">Rule Engine</p>
         <h1>Rule-Driven Micro World</h1>
         <p className="lede">
-          First bounded baseline: ten entities, delta-based movement, and simple
-          on-screen bounds.
+          Swirl rule active: ten entities, explicit rule application, and curved
+          motion on top of the bounded baseline.
         </p>
       </section>
 
       <section className="world-panel" aria-label="Micro world simulation">
         <div className="world-stats">
           <span>{ENTITY_COUNT} entities</span>
+          <span>swirl rule</span>
           <span>delta timing</span>
-          <span>simple bounds</span>
         </div>
 
         <div className="world" role="img" aria-label="Moving entities in a micro world">
