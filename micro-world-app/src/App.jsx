@@ -8,6 +8,7 @@ const ENTITY_COUNT = 10
 const WORLD_WIDTH = 720
 const WORLD_HEIGHT = 420
 const ACTIVE_RULES = [applySwirl]
+const ENTITY_HUES = [195, 205, 215, 186, 225]
 
 function App() {
   const [entities, setEntities] = useState(() =>
@@ -72,6 +73,7 @@ function App() {
                 left: `${(entity.x / WORLD_WIDTH) * 100}%`,
                 top: `${(entity.y / WORLD_HEIGHT) * 100}%`,
                 animationDelay: `${index * 90}ms`,
+                '--entity-hue': ENTITY_HUES[index % ENTITY_HUES.length],
               }}
             />
           ))}
