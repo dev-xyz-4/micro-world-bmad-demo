@@ -1,4 +1,5 @@
 const ENTITY_RADIUS = 9
+const MAX_FRAME_DELTA_MS = 48
 
 function applyBounds(position, velocity, limit) {
   if (position <= ENTITY_RADIUS) {
@@ -19,7 +20,7 @@ function applyBounds(position, velocity, limit) {
 }
 
 export function updateEntities(entities, deltaMs, width, height) {
-  const deltaSeconds = Math.min(deltaMs, 48) / 1000
+  const deltaSeconds = Math.min(deltaMs, MAX_FRAME_DELTA_MS) / 1000
 
   return entities.map((entity) => {
     const nextX = entity.x + entity.vx * deltaSeconds

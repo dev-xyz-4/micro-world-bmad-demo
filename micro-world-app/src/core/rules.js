@@ -1,7 +1,8 @@
 const SWIRL_RATE = 1.1
+const MAX_RULE_DELTA_MS = 48
 
 export function applySwirl(entities, deltaMs) {
-  const rotation = SWIRL_RATE * Math.min(deltaMs, 48) / 1000
+  const rotation = SWIRL_RATE * Math.min(deltaMs, MAX_RULE_DELTA_MS) / 1000
   const sin = Math.sin(rotation)
   const cos = Math.cos(rotation)
 
