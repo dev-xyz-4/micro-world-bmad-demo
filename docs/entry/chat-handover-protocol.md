@@ -63,28 +63,22 @@ Use links instead of duplicating governance text:
 # 3. Current Repository State
 
 Latest Tag:
-v0.1.1
+v0.2.0
 
 Governance Baseline Includes:
 
-- <baseline-item-1>
-- <baseline-item-2>
-- <baseline-item-3>
+- BMAD project documentation for scope, architecture, risk profile, and glossary
+- Isolated React + Vite demo app in `micro-world-app/`
+- Completed BMAD feature documentation for `entity-system`
+- Implemented first `entity-system` baseline: 10 entities, delta-based movement, simple bounds behavior
 
 Notes:
-- Keep this section factual and current.
-- Avoid adding governance rules here; link to authoritative docs instead.
-
----
+- `entity-system` is implemented on the current feature branch and validated locally.
+- `npm run build` passes.
 
 # 4. Current Focus
 
-<UPDATE THIS SECTION BEFORE STARTING A NEW CHAT>
-
-Example:
-- <next-target-1>
-- <next-target-2>
-- <next-target-3>
+- prepare and implement the next BMAD feature: `rule-engine`
 
 ---
 
