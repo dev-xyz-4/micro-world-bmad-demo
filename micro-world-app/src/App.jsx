@@ -9,6 +9,9 @@ const WORLD_WIDTH = 720
 const WORLD_HEIGHT = 420
 const ACTIVE_RULES = [applySwirl]
 const ENTITY_HUES = [195, 205, 215, 186, 225]
+const ENTITY_ANIMATION_STAGGER_MS = 90
+const WORLD_STAT_LABELS = ['swirl rule', 'delta timing']
+const WORLD_ARIA_LABEL = 'Moving entities in a micro world'
 
 function App() {
   const [entities, setEntities] = useState(() =>
@@ -60,11 +63,12 @@ function App() {
       <section className="world-panel" aria-label="Micro world simulation">
         <div className="world-stats">
           <span>{ENTITY_COUNT} entities</span>
-          <span>swirl rule</span>
-          <span>delta timing</span>
+          {WORLD_STAT_LABELS.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
 
-        <div className="world" role="img" aria-label="Moving entities in a micro world">
+        <div className="world" role="img" aria-label={WORLD_ARIA_LABEL}>
           {entities.map((entity, index) => (
             <div
               key={entity.id}
@@ -72,7 +76,7 @@ function App() {
               style={{
                 left: `${(entity.x / WORLD_WIDTH) * 100}%`,
                 top: `${(entity.y / WORLD_HEIGHT) * 100}%`,
-                animationDelay: `${index * 90}ms`,
+                animationDelay: `${index * ENTITY_ANIMATION_STAGGER_MS}ms`,
                 '--entity-hue': ENTITY_HUES[index % ENTITY_HUES.length],
               }}
             />
