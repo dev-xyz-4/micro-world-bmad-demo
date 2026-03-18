@@ -8,6 +8,7 @@ Generated on: 2026-03-17
 
 This document is a historical chronology of recorded Minor Change (workflow) entries.
 It does not define workflow governance rules.
+The version column reflects the release line used by this project where that association is known.
 
 For binding workflow rules and classification authority, refer to:
 - `docs/bmad/guides/CODEX_WORKFLOW_POLICY.md`
@@ -23,8 +24,8 @@ Namespace reminder:
 Chronological record:
 | Version | Date | Scope | Description | PR reference |
 |---|---|---|---|---|
-| unreleased | 2026-03-17 | repo docs | Reposition repo docs to the Rule-Driven Micro World demo and document the initial app setup | N/A |
-| unreleased | 2026-03-18 | docs/00-project | Activate core project documentation from empty placeholders for scope, architecture, risk, and glossary | N/A |
-| unreleased | 2026-03-18 | micro-world-app rendering | Add glow-focused entity rendering with subtle color variation for the demo baseline | N/A |
-| unreleased | 2026-03-18 | micro-world-app parameters | Extract local rendering and simulation parameters into named constants without changing behavior | N/A |
-| unreleased | 2026-03-18 | micro-world-app frame loop | Refactor frame-step logic in `App.jsx` into small helpers for readability without changing behavior | N/A |
+| v0.1.0 | 2026-03-17 | repo docs | Reposition repo docs to the Rule-Driven Micro World demo and document the initial app setup | N/A |
+| v0.1.0 | 2026-03-18 | docs/00-project | Activate core project documentation from empty placeholders for scope, architecture, risk, and glossary | N/A |
+| v0.3.0 | 2026-03-18 | micro-world-app rendering | Add glow-focused entity rendering with subtle color variation for the demo baseline | N/A |
+| v0.3.0 | 2026-03-18 | micro-world-app parameters | Extract local rendering and simulation parameters into named constants without changing behavior | N/A |
+| v0.3.0 | 2026-03-18 | micro-world-app frame loop | Refactor frame-step logic in `App.jsx` into small helpers for readability without changing behavior | N/A |
